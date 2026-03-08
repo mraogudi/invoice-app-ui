@@ -44,8 +44,8 @@ images:
 
 substitutions:
   _REGION: asia-south1
-  _REPO_NAME: react-app
-  _SERVICE_NAME: invoice-ui
+  _REPO_NAME: invoice-ui
+  _SERVICE_NAME: react-app
 
 options:
   logging: CLOUD_LOGGING_ONLY
