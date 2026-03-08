@@ -1,33 +1,29 @@
-# Stage 1: Build the React application
+# Use a Node image to build the app
 FROM node:20-alpine AS build
-
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# 1. Define ARGs (These must match the --build-arg names in cloudbuild.yaml)
+ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_MICROSOFT_CLIENT_ID
+ARG VITE_GITHUB_CLIENT_ID
+
+# 2. Make them available as ENVs during the build process
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+ENV VITE_MICROSOFT_CLIENT_ID=$VITE_MICROSOFT_CLIENT_ID
+ENV VITE_GITHUB_CLIENT_ID=$VITE_GITHUB_CLIENT_ID
+
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy the rest of the application
 COPY . .
 
-# Build the application
+# 3. Build the app (Vite will now see the variables and bake them in)
 RUN npm run build
 
-# Stage 2: Serve the built application with Nginx
-FROM nginx:alpine
-
-# Copy the build output from the builder stage
-# Vite outputs to 'dist' by default
+# Use Nginx to serve the static files
+FROM nginx:stable-alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy the custom Nginx configuration
+# Cloud Run needs the container to listen on 8080
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expose port 8080 (Cloud Run uses this by default)
 EXPOSE 8080
-
-# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
