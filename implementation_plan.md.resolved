@@ -1,0 +1,45 @@
+# Google Cloud Deployment Pipeline
+
+This plan outlines the steps to implement a CI/CD pipeline code for deploying the Vite-based React frontend to Google Cloud Run using Google Cloud Build. This is the industry-standard and most robust robust way to deploy web applications on Google Cloud.
+
+## User Review Required
+> [!IMPORTANT]
+> Since this is a Google Cloud project, you will need to perform a few one-time setup steps in your Google Cloud Platform (GCP) Console before this pipeline will work:
+> 1. Enable the following APIs: Cloud Build API, Cloud Run Admin API, Artifact Registry API.
+> 2. Create an Artifact Registry repository (Docker format) to store your images.
+> 3. Grant the Cloud Build service account permissions to deploy to Cloud Run (`Cloud Run Admin` and `Service Account User` roles).
+
+Please let me know if you would prefer a different service (like Firebase Hosting or Google Cloud Storage) or a different CI tool (like GitHub Actions instead of Cloud Build).
+
+## Proposed Changes
+
+### Docker Configuration
+To deploy the frontend to Cloud Run, we will package it as an Nginx web server container.
+
+#### [NEW] `c:\Workspace\frontend\invoice-ui\Dockerfile`
+Creates a multi-stage Docker build. 
+1. The first stage uses Node.js to install dependencies and run `npm run build`.
+2. The second stage uses a lightweight NGINX alpine image to serve the static files, replacing default config with one that routes all requests to [index.html](file:///c:/Workspace/frontend/invoice-ui/index.html) (vital for Single Page Applications like React).
+
+#### [NEW] `c:\Workspace\frontend\invoice-ui\.dockerignore`
+Prevents unnecessary files and large directories like `node_modules` from being sent to the Docker daemon, significantly speeding up the build process.
+
+#### [NEW] `c:\Workspace\frontend\invoice-ui\nginx.conf`
+A configuration file for NGINX to ensure client-side routing works properly by redirecting all 404s to [index.html](file:///c:/Workspace/frontend/invoice-ui/index.html).
+
+### Pipeline Configuration
+#### [NEW] `c:\Workspace\frontend\invoice-ui\cloudbuild.yaml`
+The actual pipeline code for Google Cloud. It consists of three steps:
+1. List and verify files (optional).
+2. Build the Docker image using `docker build`.
+3. Push the image to Google Artifact Registry.
+4. Deploy the newly built container to Google Cloud Run, allowing unauthenticated access so the public can view your application.
+
+## Verification Plan
+
+### Automated Tests
+There are no automated application tests currently defined in package.json to run in the pipeline. We can add a step in the pipeline if tests are implemented later.
+
+### Manual Verification
+1. Ensure the `cloudbuild.yaml` schema is correct.
+2. The user will be asked to either submit the build manually using `gcloud builds submit --config cloudbuild.yaml .` to test the pipeline flow and verify the Cloud Run service comes online.
