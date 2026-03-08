@@ -17,7 +17,7 @@ import {
 
 import { Print, Download } from "@mui/icons-material";
 import dayjs from "dayjs";
-import invoiceService from "../services/InvoiceService";
+import invoiceService from "../services/invoiceService";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import html2canvas from "html2canvas";

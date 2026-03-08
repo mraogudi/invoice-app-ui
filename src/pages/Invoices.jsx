@@ -33,7 +33,7 @@ import {
   Download,
 } from "@mui/icons-material";
 
-import invoiceService from "../services/InvoiceService";
+import invoiceService from "../services/invoiceService";
 import InvoicePreview from "./InvoicePreview";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";

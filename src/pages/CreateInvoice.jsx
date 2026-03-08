@@ -28,7 +28,7 @@ import {
   Description,
 } from "@mui/icons-material";
 import clientService from "../services/clientService";
-import invoiceService from "../services/InvoiceService";
+import invoiceService from "../services/invoiceService";
 import productService from "../services/productService";
 
 const STATUS_OPTIONS = [

@@ -19,7 +19,7 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import invoiceService from "../services/InvoiceService";
+import invoiceService from "../services/invoiceService";
 import dashboardService from "../services/dashboardService";
 import { useAuth } from "../auth/AuthContext";
 
