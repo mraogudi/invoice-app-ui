@@ -1,16 +1,23 @@
 steps:
   # Step 1: Build the Docker image
+  # IMPORTANT: We pass build-args here so Vite can access them during 'npm run build'
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
         "-t",
         "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA",
+        "--build-arg",
+        "VITE_GOOGLE_CLIENT_ID=${_VITE_GOOGLE_CLIENT_ID}",
+        "--build-arg",
+        "VITE_MICROSOFT_CLIENT_ID=${_VITE_MICROSOFT_CLIENT_ID}",
+        "--build-arg",
+        "VITE_GITHUB_CLIENT_ID=${_VITE_GITHUB_CLIENT_ID}",
         ".",
       ]
     id: "Build Image"
 
-  # Step 2: Push the Docker image to Artifact Registry
+  # Step 2: Push the Docker image
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
@@ -35,7 +42,7 @@ steps:
         "managed",
         "--allow-unauthenticated",
         "--port",
-        "80",
+        "8080",
       ]
     id: "Deploy"
 
@@ -46,6 +53,10 @@ substitutions:
   _REGION: asia-south1
   _REPO_NAME: invoice-ui
   _SERVICE_NAME: react-app
+  # Provide empty defaults so the build doesn't crash if they aren't in the Trigger UI
+  _VITE_GOOGLE_CLIENT_ID: ""
+  _VITE_MICROSOFT_CLIENT_ID: ""
+  _VITE_GITHUB_CLIENT_ID: ""
 
 options:
   logging: CLOUD_LOGGING_ONLY
