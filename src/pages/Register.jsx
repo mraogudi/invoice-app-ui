@@ -34,6 +34,7 @@ import { useGoogleLogin } from "@react-oauth/google";
 import socialService from "../services/soacialService";
 import { useMsal } from "@azure/msal-react";
 import { useSnackbar } from "notistack";
+import CustomAlert from "../utils/CustomAlert";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -51,6 +52,24 @@ export default function Register() {
   const { enqueueSnackbar } = useSnackbar();
 
   const nav = useNavigate();
+
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const showAlert = (message, severity) => {
+    setAlert({
+      open: true,
+      message: message,
+      severity: severity,
+    });
+  };
+
+  const handleClose = () => {
+    setAlert({ ...alert, open: false });
+  };
 
   /* Handle Change */
   const handleChange = (e) => {
@@ -208,67 +227,69 @@ export default function Register() {
 
   // ================= MICROSOFT LOGIN =================
   const microsoftLogin = async () => {
-    try {
-      const loginRes = await instance.loginPopup({
-        scopes: ["openid", "profile", "email"],
-      });
+    showAlert("Coming Soon..!", "info");
+    // try {
+    //   const loginRes = await instance.loginPopup({
+    //     scopes: ["openid", "profile", "email"],
+    //   });
 
-      const idToken = loginRes.idToken;
+    //   const idToken = loginRes.idToken;
 
-      const res = socialService.microsoftLogin({ idToken: idToken });
-      if (res.status === 302) {
-        enqueueSnackbar(
-          <Typography
-            sx={{
-              fontFamily: "Monospace",
-              fontWeight: "bold",
-              fontSize: "0.9rem",
-            }}
-          >
-            {res.data.message}
-          </Typography>,
-          { variant: "info" },
-        );
-      } else {
-        enqueueSnackbar(
-          <Typography
-            sx={{
-              fontFamily: "Monospace",
-              fontWeight: "bold",
-              fontSize: "0.9rem",
-            }}
-          >
-            {res.data.message}
-          </Typography>,
-          { variant: "success" },
-        );
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("userId", res.data.user.id);
-      }
-    } catch {
-      enqueueSnackbar(
-        <Typography
-          sx={{
-            fontFamily: "Monospace",
-            fontWeight: "bold",
-            fontSize: "0.9rem",
-          }}
-        >
-          Microsoft login failed
-        </Typography>,
-        { variant: "error" },
-      );
-    }
+    //   const res = socialService.microsoftLogin({ idToken: idToken });
+    //   if (res.status === 302) {
+    //     enqueueSnackbar(
+    //       <Typography
+    //         sx={{
+    //           fontFamily: "Monospace",
+    //           fontWeight: "bold",
+    //           fontSize: "0.9rem",
+    //         }}
+    //       >
+    //         {res.data.message}
+    //       </Typography>,
+    //       { variant: "info" },
+    //     );
+    //   } else {
+    //     enqueueSnackbar(
+    //       <Typography
+    //         sx={{
+    //           fontFamily: "Monospace",
+    //           fontWeight: "bold",
+    //           fontSize: "0.9rem",
+    //         }}
+    //       >
+    //         {res.data.message}
+    //       </Typography>,
+    //       { variant: "success" },
+    //     );
+    //     localStorage.setItem("token", res.data.token);
+    //     localStorage.setItem("userId", res.data.user.id);
+    //   }
+    // } catch {
+    //   enqueueSnackbar(
+    //     <Typography
+    //       sx={{
+    //         fontFamily: "Monospace",
+    //         fontWeight: "bold",
+    //         fontSize: "0.9rem",
+    //       }}
+    //     >
+    //       Microsoft login failed
+    //     </Typography>,
+    //     { variant: "error" },
+    //   );
+    // }
   };
 
   // ================= GITHUB LOGIN =================
   const githubLogin = () => {
-    const clientId = "Ov23li3ivGURfUZEV4cA";
-    const redirect = `${window.location.origin}/github/callback`;
+    showAlert("Coming Soon..!", "info");
+    // const clientId = "Ov23li3ivGURfUZEV4cA";
+    // const redirect = `${window.location.origin}/github/callback`;
 
-    window.location.href =
-      `https://github.com/login/oauth/authorize?` +
-      `client_id=${clientId}&scope=user:email&redirect_uri=${redirect}`;
+    // window.location.href =
+    //   `https://github.com/login/oauth/authorize?` +
+    //   `client_id=${clientId}&scope=user:email&redirect_uri=${redirect}`;
   };
 
   // ================= ICON CLICK HANDLER =================
@@ -618,6 +639,12 @@ export default function Register() {
                 Already have an account? <Link href="/login">Login</Link>
               </Typography>
             </Box>
+            <CustomAlert
+              open={alert.open}
+              message={alert.message}
+              severity={alert.severity}
+              handleClose={handleClose}
+            />
           </Paper>
         </motion.div>
       </Grid>

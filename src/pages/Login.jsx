@@ -35,6 +35,7 @@ import api from "../api/api";
 import socialService from "../services/soacialService";
 import { useSnackbar } from "notistack";
 import { motion } from "framer-motion";
+import CustomAlert from "../utils/CustomAlert";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -46,6 +47,24 @@ export default function Login() {
 
   const nav = useNavigate();
   const { instance } = useMsal();
+
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const showAlert = (message, severity) => {
+    setAlert({
+      open: true,
+      message: message,
+      severity: severity,
+    });
+  };
+
+  const handleClose = () => {
+    setAlert({ ...alert, open: false });
+  };
 
   /* Load remembered email */
   useEffect(() => {
@@ -177,68 +196,70 @@ export default function Login() {
 
   // ================= MICROSOFT LOGIN =================
   const microsoftLogin = async () => {
-    try {
-      const loginRes = await instance.loginPopup({
-        scopes: ["openid", "profile", "email"],
-        prompt: "select_account", // This forces the Microsoft account picker to show
-      });
+    showAlert("Coming Soon..!", "info");
+    // try {
+    //   const loginRes = await instance.loginPopup({
+    //     scopes: ["openid", "profile", "email"],
+    //     prompt: "select_account", // This forces the Microsoft account picker to show
+    //   });
 
-      const idToken = loginRes.idToken;
+    //   const idToken = loginRes.idToken;
 
-      const res = await socialService.microsoftLogin({ idToken: idToken });
-      if (res.status === 302) {
-        enqueueSnackbar(
-          <Typography
-            sx={{
-              fontFamily: "Monospace",
-              fontWeight: "bold",
-              fontSize: "0.9rem",
-            }}
-          >
-            {res.data.message}
-          </Typography>,
-          { variant: "info" },
-        );
-      } else {
-        enqueueSnackbar(
-          <Typography
-            sx={{
-              fontFamily: "Monospace",
-              fontWeight: "bold",
-              fontSize: "0.9rem",
-            }}
-          >
-            {res.data.message}
-          </Typography>,
-          { variant: "success" },
-        );
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("userId", res.data.user.id);
-      }
-    } catch {
-      enqueueSnackbar(
-        <Typography
-          sx={{
-            fontFamily: "Monospace",
-            fontWeight: "bold",
-            fontSize: "0.9rem",
-          }}
-        >
-          Microsoft login failed
-        </Typography>,
-        { variant: "success" },
-      );
-    }
+    //   const res = await socialService.microsoftLogin({ idToken: idToken });
+    //   if (res.status === 302) {
+    //     enqueueSnackbar(
+    //       <Typography
+    //         sx={{
+    //           fontFamily: "Monospace",
+    //           fontWeight: "bold",
+    //           fontSize: "0.9rem",
+    //         }}
+    //       >
+    //         {res.data.message}
+    //       </Typography>,
+    //       { variant: "info" },
+    //     );
+    //   } else {
+    //     enqueueSnackbar(
+    //       <Typography
+    //         sx={{
+    //           fontFamily: "Monospace",
+    //           fontWeight: "bold",
+    //           fontSize: "0.9rem",
+    //         }}
+    //       >
+    //         {res.data.message}
+    //       </Typography>,
+    //       { variant: "success" },
+    //     );
+    //     localStorage.setItem("token", res.data.token);
+    //     localStorage.setItem("userId", res.data.user.id);
+    //   }
+    // } catch {
+    //   enqueueSnackbar(
+    //     <Typography
+    //       sx={{
+    //         fontFamily: "Monospace",
+    //         fontWeight: "bold",
+    //         fontSize: "0.9rem",
+    //       }}
+    //     >
+    //       Microsoft login failed
+    //     </Typography>,
+    //     { variant: "success" },
+    //   );
+    // }
   };
 
   // ================= GITHUB LOGIN =================
   const githubLogin = () => {
-    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-    const redirect = `${window.location.origin}/github/callback`;
+    showAlert("Coming Soon..!", "info");
+    // const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    // const redirect = `${window.location.origin}/github/callback`;
 
-    window.location.href =
-      `https://github.com/login/oauth/authorize?` +
-      `client_id=${clientId}&scope=user:email&redirect_uri=${redirect}`;
+    // window.location.href =
+    //   `https://github.com/login/oauth/authorize?` +
+    //   `client_id=${clientId}&scope=user:email&redirect_uri=${redirect}`;
   };
 
   // ================= ICON CLICK HANDLER =================
@@ -505,6 +526,12 @@ export default function Login() {
               Create an account? <Link href="/register">Register</Link>
             </Typography>
           </Box>
+          <CustomAlert
+            open={alert.open}
+            message={alert.message}
+            severity={alert.severity}
+            handleClose={handleClose}
+          />
         </Paper>
       </Grid>
     </Grid>
