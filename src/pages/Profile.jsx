@@ -14,6 +14,12 @@ import {
   Container,
   Stack,
   Tooltip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 
 import {
@@ -29,7 +35,8 @@ import {
   PhoneIphone,
   ShieldRounded,
 } from "@mui/icons-material";
-
+// ✅ ONLY NEW IMPORT ADDED
+import { TablePagination } from "@mui/material";
 import { useAuth } from "../auth/AuthContext";
 import userService from "../services/userService";
 
@@ -44,6 +51,10 @@ export default function Profile() {
   const [userDetailsTemp, setUserDetailsTemp] = useState();
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [history, setHistory] = useState([]);
+  // ✅ Pagination state
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 5;
 
   const [profile, setProfile] = useState({
     id: "",
@@ -73,6 +84,7 @@ export default function Profile() {
     if (!handleApiCall.current) {
       handleApiCall.current = true;
       fetchUserDetails();
+      setPage(0);
     }
   }, []);
 
@@ -82,11 +94,57 @@ export default function Profile() {
       const response = await userService.getUserDetails();
       setProfile(response);
       setUserDetailsTemp(response);
+
+      // ✅ Fetch login history
+      const historyRsp = await userService.getLoginHistory();
+      setHistory(historyRsp || []);
     } catch (err) {
       console.error("Failed to load details", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "NA";
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const paginatedHistory = history.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
+  );
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const formatTime = (value) => {
+    if (!value) return "NA";
+
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/;
+
+    if (typeof value === "string" && timeRegex.test(value)) {
+      const [hour, minute, second] = value.split(":");
+      let h = parseInt(hour, 10);
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      return `${h}:${minute}:${second} ${ampm}`;
+    }
+
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return "NA";
+
+    return d.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
   };
 
   const handleProfileChange = (e) => {
@@ -444,6 +502,74 @@ export default function Profile() {
                 )}
               </Button>
             </Box>
+          </Paper>
+
+          {/* HISTORY CARD */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 3, md: 5 },
+              mt: 4,
+              borderRadius: 6,
+              background: colors.glass,
+              backdropFilter: "blur(12px)",
+              border: `1px solid ${colors.border}`,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.04)",
+            }}
+          >
+            <Typography variant="h6" fontWeight={700} mb={3}>
+              Login History
+            </Typography>
+
+            <Divider sx={{ mb: 2 }} />
+
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>
+                      <b>Name</b>
+                    </TableCell>
+                    <TableCell>
+                      <b>Date</b>
+                    </TableCell>
+                    <TableCell>
+                      <b>Time</b>
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {paginatedHistory.length > 0 ? (
+                    paginatedHistory.map((row, index) => (
+                      <TableRow key={index} hover>
+                        <TableCell>{row.name || "NA"}</TableCell>
+                        <TableCell>{formatDate(row.loginDate)}</TableCell>
+                        <TableCell>{formatTime(row.loginTime)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
+                        <Typography color="text.secondary">
+                          No login history available
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* ✅ Pagination Added */}
+            <TablePagination
+              component="div"
+              count={history.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={[5]}
+            />
           </Paper>
         </Box>
       </Container>

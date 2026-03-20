@@ -30,6 +30,16 @@ const userService = {
       throw error;
     }
   },
+
+  getLoginHistory: async () => {
+    try {
+      const response = await api.get("/user/history");
+      return response.data;
+    } catch (error) {
+      console.error("Error updating password:", error);
+      throw error;
+    }
+  },
 };
 
 export default userService;

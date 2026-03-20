@@ -123,7 +123,7 @@ export default function MainLayout({ children }) {
           </Typography>
 
           {/* Logout */}
-          <Tooltip title="Account">
+          <Tooltip title={userName}>
             <IconButton onClick={handleMenuOpen} sx={{ p: 0 }}>
               <Avatar
                 sx={{

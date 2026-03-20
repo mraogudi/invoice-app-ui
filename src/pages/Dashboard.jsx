@@ -19,6 +19,9 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import LoginIcon from "@mui/icons-material/Login";
+import InsightsIcon from "@mui/icons-material/Insights";
 import invoiceService from "../services/invoiceService";
 import dashboardService from "../services/dashboardService";
 import { useAuth } from "../auth/AuthContext";
@@ -92,6 +95,81 @@ export default function Dashboard() {
       maximumFractionDigits: 2,
     }).format(Number(value || 0));
 
+  const isInvalidDate = (value) => {
+    return (
+      !value ||
+      value === "NA" ||
+      value === "null" ||
+      value === "undefined" ||
+      isNaN(new Date(value).getTime())
+    );
+  };
+
+  const formatDate = (date) => {
+    if (isInvalidDate(date)) return "NA";
+
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (value) => {
+    if (!value || value === "NA" || value === "null" || value === "undefined") {
+      return "NA";
+    }
+
+    // ✅ Match 24-hour time (HH:mm or HH:mm:ss)
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/;
+
+    if (typeof value === "string" && timeRegex.test(value)) {
+      const parts = value.split(":");
+      let hour = parseInt(parts[0], 10);
+      const minute = parts[1];
+
+      const ampm = hour >= 12 ? "PM" : "AM";
+      hour = hour % 12 || 12; // convert 0 → 12
+
+      return `${hour}:${minute}:${parts[2]} ${ampm}`;
+    }
+
+    // ✅ Fallback for full datetime
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return "NA";
+
+    return date.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  };
+
+  const formatDateTime = (dateValue) => {
+    if (!dateValue || dateValue === "NA") return "NA";
+
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return "NA";
+
+    const formatted = new Intl.DateTimeFormat("en-IN", {
+      day: "2-digit",
+      month: "short", // This gives 'Mar', 'Apr', etc. (Camel Case)
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    }).format(date);
+
+    // This replaces lowercase 'am' or 'pm' with uppercase 'AM' or 'PM'
+    // while leaving the rest of the string (like the Month) untouched.
+    return formatted.replace(/am|pm/gi, (matched) => matched.toUpperCase());
+  };
+
+  // Usage in JSX
+  <p>{formatDate(new Date())}</p>; // Result: March 20, 2026, 06:32 PM
+
   return (
     <Box
       sx={{
@@ -100,14 +178,53 @@ export default function Dashboard() {
       }}
     >
       {/* Header */}
-      <Box mb={4}>
-        <Typography variant="h4" fontWeight="bold">
-          Hi, {userName}!
-        </Typography>
+      <Box
+        mb={4}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        flexWrap="wrap"
+      >
+        {/* Left - Username */}
+        <Box>
+          <Typography variant="h4" fontWeight="bold">
+            Hi, {userName}!
+          </Typography>
 
-        <Typography color="text.secondary">
-          Welcome to Invoice Management System
-        </Typography>
+          <Typography color="text.secondary">
+            Welcome to Invoice Management System
+          </Typography>
+        </Box>
+
+        {/* Right - Login Info */}
+        <Box
+          sx={{
+            p: 2,
+            borderRadius: 2,
+            minWidth: "200px",
+          }}
+        >
+          <Typography variant="body2" fontWeight="500">
+            <LoginIcon fontSize="small" color="action" /> Last Login:{" "}
+            <b>
+              {isInvalidDate(stats?.lastLoginDate) &&
+              isInvalidDate(stats?.lastLoginTime)
+                ? "NA"
+                : `${formatDate(stats?.lastLoginDate)}, ${formatTime(stats?.lastLoginTime)}`}
+            </b>
+          </Typography>
+
+          <Typography variant="body2" fontWeight="500">
+            <InsightsIcon fontSize="small" color="action" /> Login Count:{" "}
+            <b>{stats?.loginCount ?? "NA"}</b>
+          </Typography>
+          <Typography variant="body2" fontWeight="500">
+            <PersonAddIcon fontSize="small" color="action" /> Created At:{" "}
+            <b>
+              {stats?.createdDate ? formatDateTime(stats?.createdDate) : "NA"}
+            </b>
+          </Typography>
+        </Box>
       </Box>
 
       {/* Stats Tiles */}

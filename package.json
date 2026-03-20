@@ -21,6 +21,7 @@
     "axios": "^1.13.5",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.19",
+    "formik": "^2.4.9",
     "framer-motion": "^12.34.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
@@ -31,7 +32,9 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.0",
-    "recharts": "^3.7.0"
+    "react-snowfall": "^2.4.0",
+    "recharts": "^3.7.0",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

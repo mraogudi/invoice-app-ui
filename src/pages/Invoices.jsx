@@ -31,6 +31,7 @@ import {
   Visibility,
   NoteAlt,
   Download,
+  Delete,
 } from "@mui/icons-material";
 
 import invoiceService from "../services/invoiceService";
@@ -38,6 +39,8 @@ import InvoicePreview from "./InvoicePreview";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import CustomConfirmDialog from "../utils/CustomConfirmDialog";
+import CustomAlert from "../utils/CustomAlert";
 
 export default function Invoices() {
   const nav = useNavigate();
@@ -62,6 +65,23 @@ export default function Invoices() {
   // Invoice Preview Popup
   const [openPreview, setOpenPreview] = useState(false);
   const [previewInvoiceId, setPreviewInvoiceId] = useState(null);
+
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [deleteRecord, setDeteleRecord] = useState(null);
+
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const showAlert = (message, severity) => {
+    setAlert({
+      open: true,
+      message: message,
+      severity: severity,
+    });
+  };
 
   /* ---------------- Load Data ---------------- */
 
@@ -123,6 +143,28 @@ export default function Invoices() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(Number(value || 0));
+
+  const handleDelete = (row) => {
+    setDeteleRecord(row);
+    setOpenConfirm(true);
+  };
+
+  const handleConfirm = () => {
+    console.log("Item Deleted");
+    setOpenConfirm(false);
+    console.log(deleteRecord);
+    setDeteleRecord(null);
+    showAlert("Record deleted", "success");
+  };
+
+  const handleCancel = () => {
+    setOpenConfirm(false);
+    setDeteleRecord(null);
+  };
+
+  const handleClose = () => {
+    setAlert({ ...alert, open: false });
+  };
 
   return (
     <Box>
@@ -358,6 +400,25 @@ export default function Invoices() {
                           <Download fontSize="small" />
                         </IconButton>
                       </Tooltip>
+
+                      {/* Delete */}
+                      <Tooltip title={`Delete ${row.invoiceId}`}>
+                        <IconButton
+                        onClick={() =>
+                          setDeleteDialog({
+                            open: true,
+                            productId: p.id,
+                            productName: p.name,
+                          })
+                        }
+                        sx={{
+                          color: "#FDA4AF",
+                          "&:hover": { color: "#E11D48", bgcolor: "#FFF1F2" },
+                        }}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -451,6 +512,23 @@ export default function Invoices() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <CustomConfirmDialog
+        open={openConfirm}
+        title="Delete Confirmation"
+        message="Are you sure you want to delete this item?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+
+      <CustomAlert
+        open={alert.open}
+        message={alert.message}
+        severity={alert.severity}
+        handleClose={handleClose}
+      />
     </Box>
   );
 }

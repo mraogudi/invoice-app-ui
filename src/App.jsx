@@ -26,6 +26,7 @@ import GithubCallback from "./pages/GithubCallback"; // add this page
 import InvoicePreview from "./pages/InvoicePreview";
 import Profile from "./pages/Profile";
 import InvoicePublicView from "./pages/InvoicePublicView";
+import AdaptiveSnowfall from "./components/AdaptiveSnowfall";
 
 // ✅ MICROSOFT CONFIG
 const msalInstance = new PublicClientApplication({
@@ -53,6 +54,7 @@ export default function App() {
         >
           <AuthProvider>
             <BrowserRouter>
+              <AdaptiveSnowfall themeMode="light" />
               <Routes>
                 {/* PUBLIC ROUTES */}
                 <Route path="/login" element={<Login />} />

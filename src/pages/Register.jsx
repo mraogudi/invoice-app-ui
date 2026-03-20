@@ -171,59 +171,62 @@ export default function Register() {
   };
 
   // ================= GOOGLE LOGIN =================
-  const googleLogin = useGoogleLogin({
-    flow: "auth-code",
-    onSuccess: async (tokenResponse) => {
-      try {
-        const body = {
-          code: tokenResponse.code,
-        };
-        const res = await socialService.githubLogin(body);
-        if (res.status === 302) {
-          enqueueSnackbar(
-            <Typography
-              sx={{
-                fontFamily: "Monospace",
-                fontWeight: "bold",
-                fontSize: "0.9rem",
-              }}
-            >
-              {res.data.message}
-            </Typography>,
-            { variant: "info" },
-          );
-        } else {
-          enqueueSnackbar(
-            <Typography
-              sx={{
-                fontFamily: "Monospace",
-                fontWeight: "bold",
-                fontSize: "0.9rem",
-              }}
-            >
-              {res.data.message}
-            </Typography>,
-            { variant: "success" },
-          );
-          localStorage.setItem("token", res.data.token);
-          localStorage.setItem("userId", res.data.user.id);
-        }
-      } catch {
-        enqueueSnackbar(
-          <Typography
-            sx={{
-              fontFamily: "Monospace",
-              fontWeight: "bold",
-              fontSize: "0.9rem",
-            }}
-          >
-            Google login failed
-          </Typography>,
-          { variant: "error" },
-        );
-      }
-    },
-  });
+  const googleLogin = async () => {
+    showAlert("Coming Soon..!", "info");
+  };
+  // const googleLogin = useGoogleLogin({
+  //   flow: "auth-code",
+  //   onSuccess: async (tokenResponse) => {
+  //     try {
+  //       const body = {
+  //         code: tokenResponse.code,
+  //       };
+  //       const res = await socialService.githubLogin(body);
+  //       if (res.status === 302) {
+  //         enqueueSnackbar(
+  //           <Typography
+  //             sx={{
+  //               fontFamily: "Monospace",
+  //               fontWeight: "bold",
+  //               fontSize: "0.9rem",
+  //             }}
+  //           >
+  //             {res.data.message}
+  //           </Typography>,
+  //           { variant: "info" },
+  //         );
+  //       } else {
+  //         enqueueSnackbar(
+  //           <Typography
+  //             sx={{
+  //               fontFamily: "Monospace",
+  //               fontWeight: "bold",
+  //               fontSize: "0.9rem",
+  //             }}
+  //           >
+  //             {res.data.message}
+  //           </Typography>,
+  //           { variant: "success" },
+  //         );
+  //         localStorage.setItem("token", res.data.token);
+  //         localStorage.setItem("userId", res.data.user.id);
+  //       }
+  //     } catch {
+  //       enqueueSnackbar(
+  //         <Typography
+  //           sx={{
+  //             fontFamily: "Monospace",
+  //             fontWeight: "bold",
+  //             fontSize: "0.9rem",
+  //           }}
+  //         >
+  //           Google login failed
+  //         </Typography>,
+  //         { variant: "error" },
+  //       );
+  //     }
+  //   },
+  // });
 
   // ================= MICROSOFT LOGIN =================
   const microsoftLogin = async () => {
@@ -373,7 +376,7 @@ export default function Register() {
                     borderRadius: "50%",
                     background: "rgba(25,118,210,.1)",
                     color: "#1976d2",
-
+                    disabled: { loading },
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
