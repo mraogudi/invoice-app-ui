@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"; // Added useRef
 import { useSearchParams, useNavigate } from "react-router-dom";
-import socialService from "../services/soacialService"; // Using your service
+import socialService from "../services/socialService"; // Using your service
 import { useSnackbar } from "notistack";
 
 export default function GithubCallback() {

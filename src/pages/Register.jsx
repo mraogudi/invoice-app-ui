@@ -31,8 +31,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 import api from "../api/api";
-import { useGoogleLogin } from "@react-oauth/google";
-import socialService from "../services/soacialService";
 import { useMsal } from "@azure/msal-react";
 import { useSnackbar } from "notistack";
 import CustomAlert from "../utils/CustomAlert";
@@ -49,7 +47,6 @@ export default function Register() {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { instance } = useMsal();
   const { enqueueSnackbar } = useSnackbar();
 
   const nav = useNavigate();
