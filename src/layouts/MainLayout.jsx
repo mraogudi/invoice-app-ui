@@ -163,7 +163,7 @@ export default function MainLayout({ children }) {
                   {localStorage.getItem("name")?.[0] || "U"}
                 </Avatar>
               </ListItemIcon>
-              Profile
+              {localStorage.getItem("name")}
             </MenuItem>
 
             <Divider />

@@ -246,7 +246,7 @@ export default function Profile() {
   return (
     <Box
       sx={{
-        height: "75vh", // full viewport height
+        height: "100vh", // full viewport height
         overflow: "hidden", // 🚀 removes vertical scroll
         display: "flex",
         flexDirection: "column",
@@ -262,7 +262,15 @@ export default function Profile() {
       >
         {/* HEADER */}
         <Stack direction="row" spacing={2} mb={4}>
-          <Avatar>{profile.name.charAt(0).toUpperCase()}</Avatar>
+          <Avatar
+            sx={{
+              bgcolor: "#A24857",
+              color: "white",
+              fontWeight: 600,
+            }}
+          >
+            {profile.name.charAt(0).toUpperCase()}
+          </Avatar>
           <Typography variant="h4">Account Settings</Typography>
         </Stack>
 

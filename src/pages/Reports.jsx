@@ -65,7 +65,6 @@ export default function Reports() {
     }
   };
 
-  // ✅ FIXED: Proper data check
   const hasData =
     revenueData.length > 0 || methodData.length > 0 || invoiceData.length > 0;
 
@@ -109,122 +108,101 @@ export default function Reports() {
         <StatCard
           icon={<ReceiptLong />}
           title="Invoices"
-          value={stats.totalInvoices ? stats.totalInvoices : "NA"}
+          value={stats.totalInvoices ?? "NA"}
           gradient="linear-gradient(135deg,#ecfeff,#cffafe)"
         />
 
         <StatCard
           icon={<Payments />}
           title="Payments"
-          value={stats.totalPayments ? stats.totalPayments : "NA"}
+          value={stats.totalPayments ?? "NA"}
           gradient="linear-gradient(135deg,#f0fdf4,#dcfce7)"
         />
 
         <StatCard
           icon={<WarningAmber />}
           title="Overdue"
-          value={stats.overdueInvoices ? stats.overdueInvoices : "NA"}
+          value={stats.overdueInvoices ?? "NA"}
           gradient="linear-gradient(135deg,#fef2f2,#fee2e2)"
           danger
         />
       </Grid>
 
-      {/* Empty State */}
-      {!hasData && (
-        <Paper
-          sx={{
-            p: 5,
-            textAlign: "center",
-            borderRadius: 4,
-            mb: 3,
-            background: "linear-gradient(135deg,#f8fafc,#eef2ff)",
-          }}
-        >
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            gap={1}
-            color="#94A3B8"
-          >
-            <ReceiptLong sx={{ fontSize: 45, opacity: 0.4 }} />
-
-            <Typography fontWeight={600}>No Report Data Available</Typography>
-
-            <Typography fontSize={13}>
-              No invoices or payments found to generate reports
-            </Typography>
-          </Box>
-        </Paper>
-      )}
-
       {/* Charts */}
       {hasData && (
         <Grid container spacing={3}>
           {/* Revenue */}
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={8} width={"30%"}>
             <ChartCard title="Monthly Revenue">
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#6366f1"
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <Box sx={{ width: "100%", minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#6366f1"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Box>
             </ChartCard>
           </Grid>
 
           {/* Payment Methods */}
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={4} width={"30%"}>
             <ChartCard title="Payment Methods">
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={methodData}
-                    dataKey="value"
-                    nameKey="name"
-                    outerRadius={90}
-                    label
-                  >
-                    {methodData.map((_, i) => (
-                      <Cell
-                        key={i}
-                        fill={["#6366f1", "#22c55e", "#f59e0b", "#ef4444"][i]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              <Box sx={{ width: "100%", minWidth: 250 }}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={methodData}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={90}
+                      label
+                    >
+                      {methodData.map((_, i) => (
+                        <Cell
+                          key={i}
+                          fill={
+                            ["#6366f1", "#22c55e", "#f59e0b", "#ef4444"][i % 4]
+                          }
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Box>
             </ChartCard>
           </Grid>
 
           {/* Invoices */}
-          <Grid item xs={12}>
+          <Grid item xs={12} width={"30%"}>
             <ChartCard title="Monthly Invoices">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={invoiceData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar
-                    dataKey="invoices"
-                    fill="#6366f1"
-                    radius={[8, 8, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              <Box sx={{ width: "100%", minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={invoiceData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar
+                      dataKey="invoices"
+                      fill="#6366f1"
+                      radius={[8, 8, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
             </ChartCard>
           </Grid>
         </Grid>
@@ -238,6 +216,7 @@ export default function Reports() {
 function StatCard({ icon, title, value, gradient, danger }) {
   return (
     <Grid item xs={12} sm={6} md={3} width={"23%"}>
+      {/* ❌ removed width: "23%" */}
       <Paper
         sx={{
           p: 3,
@@ -261,12 +240,7 @@ function StatCard({ icon, title, value, gradient, danger }) {
               fontWeight={value === "NA" ? 900 : 800}
               sx={{
                 color:
-                  value === "NA"
-                    ? "red" // grey for NA
-                    : danger
-                      ? "#dc2626"
-                      : "text.primary",
-                letterSpacing: value === "NA" ? "1px" : "normal",
+                  value === "NA" ? "red" : danger ? "#dc2626" : "text.primary",
               }}
             >
               {value}
@@ -303,7 +277,8 @@ function ChartCard({ title, children }) {
       <Typography fontWeight={700} mb={2}>
         {title}
       </Typography>
-      {children}
+
+      <Box sx={{ width: "100%", overflow: "hidden" }}>{children}</Box>
     </Paper>
   );
 }

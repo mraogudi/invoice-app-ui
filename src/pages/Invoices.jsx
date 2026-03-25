@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TablePagination, // ✅ Added
 } from "@mui/material";
 
 import {
@@ -32,6 +33,7 @@ import {
   NoteAlt,
   Download,
   Delete,
+  SearchRounded,
 } from "@mui/icons-material";
 
 import invoiceService from "../services/invoiceService";
@@ -55,14 +57,15 @@ export default function Invoices() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
 
-  // View Items Dialog
+  const [page, setPage] = useState(0); // ✅ Pagination
+  const [rowsPerPage] = useState(15);
+
   const [openView, setOpenView] = useState(false);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [invoiceItems, setInvoiceItems] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const hasCalledApi = useRef(false);
 
-  // Invoice Preview Popup
   const [openPreview, setOpenPreview] = useState(false);
   const [previewInvoiceId, setPreviewInvoiceId] = useState(null);
 
@@ -76,11 +79,7 @@ export default function Invoices() {
   });
 
   const showAlert = (message, severity) => {
-    setAlert({
-      open: true,
-      message: message,
-      severity: severity,
-    });
+    setAlert({ open: true, message, severity });
   };
 
   /* ---------------- Load Data ---------------- */
@@ -95,7 +94,6 @@ export default function Invoices() {
   const loadInvoices = async () => {
     try {
       setLoading(true);
-
       const res = await invoiceService.getAllInvoices();
       setInvoices(res);
     } catch (err) {
@@ -105,12 +103,39 @@ export default function Invoices() {
     }
   };
 
+  /* ---------------- Filtering ---------------- */
+
+  const filteredInvoices = invoices.filter((inv) => {
+    const matchesSearch =
+      inv.invoiceId?.toLowerCase().includes(search.toLowerCase()) ||
+      inv.clientName?.toLowerCase().includes(search.toLowerCase());
+
+    const matchesStatus =
+      status === "ALL" || inv.status?.toUpperCase() === status;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  /* ---------------- Pagination ---------------- */
+
+  const paginatedInvoices = filteredInvoices.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
+  );
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  useEffect(() => {
+    setPage(0);
+  }, [search, status, invoices]);
+
   /* ---------------- View Items ---------------- */
 
   const handleViewItems = async (invoice) => {
     try {
       setItemsLoading(true);
-
       const res = await invoiceService.getInvoiceItems(invoice.invoiceId);
 
       if (res.length !== 0) {
@@ -150,9 +175,7 @@ export default function Invoices() {
   };
 
   const handleConfirm = () => {
-    console.log("Item Deleted");
     setOpenConfirm(false);
-    console.log(deleteRecord);
     setDeteleRecord(null);
     showAlert("Record deleted", "success");
   };
@@ -168,7 +191,7 @@ export default function Invoices() {
 
   return (
     <Box>
-      {/* ---------------- Header ---------------- */}
+      {/* Header */}
       <Paper
         elevation={0}
         sx={{
@@ -179,21 +202,12 @@ export default function Invoices() {
           color: "white",
         }}
       >
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          flexWrap="wrap"
-          gap={2}
-        >
+        <Box display="flex" justifyContent="space-between">
           <Box>
             <Typography variant="h5" fontWeight="600">
               Invoices
             </Typography>
-
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Manage all your invoices
-            </Typography>
+            <Typography variant="body2">Manage all your invoices</Typography>
           </Box>
 
           {!loading && invoices.length > 0 && (
@@ -204,10 +218,7 @@ export default function Invoices() {
               sx={{
                 bgcolor: "white",
                 color: "#6366f1",
-                fontWeight: 600,
-                "&:hover": {
-                  bgcolor: "#eef2ff",
-                },
+                "&:hover": { bgcolor: "#eef2ff" },
               }}
             >
               Create Invoice
@@ -216,16 +227,9 @@ export default function Invoices() {
         </Box>
       </Paper>
 
-      {/* ---------------- Filters ---------------- */}
-      <Paper
-        sx={{
-          p: 2,
-          mb: 2,
-          borderRadius: 3,
-        }}
-      >
-        <Box display="flex" gap={2} flexWrap="wrap">
-          {/* Search */}
+      {/* Filters */}
+      <Paper sx={{ p: 2, mb: 2, borderRadius: 3 }}>
+        <Box display="flex" gap={2}>
           <TextField
             size="small"
             placeholder="Search invoice"
@@ -238,32 +242,30 @@ export default function Invoices() {
                 </InputAdornment>
               ),
             }}
-            sx={{ minWidth: 220 }}
           />
 
-          {/* Status Filter */}
           <TextField
             size="small"
             select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            sx={{ minWidth: 160 }}
           >
             <MenuItem value="ALL">All Status</MenuItem>
-            <MenuItem value="Paid">Paid</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="Overdue">Overdue</MenuItem>
+            <MenuItem value="PAID">Paid</MenuItem>
+            <MenuItem value="SENT">Sent</MenuItem>
+            <MenuItem value="OVERDUE">Overdue</MenuItem>
           </TextField>
+
+          <Button>
+            <Tooltip title="Search">
+              <SearchRounded />
+            </Tooltip>
+          </Button>
         </Box>
       </Paper>
 
-      {/* ---------------- Table ---------------- */}
-      <Paper
-        sx={{
-          borderRadius: 3,
-          overflow: "hidden",
-        }}
-      >
+      {/* Table */}
+      <Paper sx={{ borderRadius: 3 }}>
         <TableContainer>
           <Table>
             <TableHead>
@@ -281,103 +283,34 @@ export default function Invoices() {
             </TableHead>
 
             <TableBody>
-              {/* Loading */}
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     <CircularProgress size={28} />
                   </TableCell>
                 </TableRow>
               )}
 
-              {/* No Data */}
-              {!loading && invoices.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={9} align="center">
-                    <Box
-                      sx={{
-                        py: 6,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 1,
-                        color: "#94A3B8",
-                      }}
-                    >
-                      <NoteAlt sx={{ fontSize: 45, opacity: 0.4 }} />
-
-                      <Typography fontWeight={600}>
-                        No Invoices Available
-                      </Typography>
-
-                      <Typography fontSize={13}>
-                        You haven't created any invoices yet
-                      </Typography>
-
-                      {/* Show button ONLY here */}
-                      <Button
-                        variant="contained"
-                        startIcon={<Add />}
-                        onClick={() => nav("/create-invoice")}
-                        sx={{
-                          mt: 1.5,
-                          borderRadius: 2,
-                          textTransform: "none",
-                          bgcolor: "#6366f1",
-                          "&:hover": { bgcolor: "#4f46e5" },
-                        }}
-                      >
-                        Create First Invoice
-                      </Button>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              )}
-
-              {/* Data */}
               {!loading &&
-                invoices.map((row) => (
+                paginatedInvoices.map((row) => (
                   <TableRow key={row.invoiceId} hover>
-                    {/* Invoice */}
-                    <TableCell sx={{ cursor: "pointer", fontWeight: 600 }}>
-                      {row.invoiceId}
-                    </TableCell>
-
+                    <TableCell>{row.invoiceId}</TableCell>
                     <TableCell>{row.clientName}</TableCell>
-
                     <TableCell>
-                      {dayjs
-                        .utc(row.invoiceDate)
-                        .tz("Asia/Kolkata")
-                        .format("DD MMM YYYY")}
+                      {dayjs(row.invoiceDate).format("DD MMM YYYY")}
                     </TableCell>
-
                     <TableCell>
                       {row.dueDate
-                        ? dayjs
-                            .utc(row.dueDate)
-                            .tz("Asia/Kolkata")
-                            .format("DD MMM YYYY")
+                        ? dayjs(row.dueDate).format("DD MMM YYYY")
                         : "N/A"}
                     </TableCell>
-
-                    <TableCell>
-                      ₹ {row.totalAmount ? formatINR(row.totalAmount) : "0.0"}
-                    </TableCell>
-
-                    <TableCell>
-                      ₹ {row.subtotal ? formatINR(row.subtotal) : "0.0"}
-                    </TableCell>
-
-                    <TableCell>
-                      ₹ {row.taxTotal ? formatINR(row.taxTotal) : "0.0"}
-                    </TableCell>
-
+                    <TableCell>₹ {formatINR(row.totalAmount)}</TableCell>
+                    <TableCell>₹ {formatINR(row.subtotal)}</TableCell>
+                    <TableCell>₹ {formatINR(row.taxTotal)}</TableCell>
                     <TableCell>
                       <StatusChip status={row.status} />
                     </TableCell>
 
-                    {/* Actions */}
                     <TableCell align="center">
                       {/* View */}
                       <Tooltip title="View Invoice Items">
@@ -388,10 +321,12 @@ export default function Invoices() {
                             handleViewItems(row);
                           }}
                           sx={{
-                            color: "#6366f1",
-
+                            color: "#4f46e5",
+                            bgcolor: "#eef2ff",
+                            mr: 0.5,
                             "&:hover": {
-                              bgcolor: "#eef2ff",
+                              bgcolor: "#e0e7ff",
+                              transform: "scale(1.08)",
                             },
                           }}
                         >
@@ -404,11 +339,12 @@ export default function Invoices() {
                         <IconButton
                           size="small"
                           sx={{
-                            color: "#8b5cf6",
-                            ml: 0.5,
-
+                            color: "#7c3aed",
+                            bgcolor: "#f3e8ff",
+                            mr: 0.5,
                             "&:hover": {
-                              bgcolor: "#f3e8ff",
+                              bgcolor: "#ede9fe",
+                              transform: "scale(1.08)",
                             },
                           }}
                         >
@@ -416,7 +352,7 @@ export default function Invoices() {
                         </IconButton>
                       </Tooltip>
 
-                      {/* Downlaod */}
+                      {/* Download */}
                       <Tooltip title={`Download ${row.invoiceId}`}>
                         <IconButton
                           size="small"
@@ -425,11 +361,12 @@ export default function Invoices() {
                             downloadInvoice(row);
                           }}
                           sx={{
-                            color: "orange",
-                            ml: 0.5,
-
+                            color: "#ea580c",
+                            bgcolor: "#fff7ed",
+                            mr: 0.5,
                             "&:hover": {
-                              bgcolor: "#f3e8ff",
+                              bgcolor: "#ffedd5",
+                              transform: "scale(1.08)",
                             },
                           }}
                         >
@@ -438,22 +375,39 @@ export default function Invoices() {
                       </Tooltip>
 
                       {/* Delete */}
-                      <Tooltip title={`Delete ${row.invoiceId}`}>
-                        <IconButton
-                          onClick={() =>
-                            setDeleteDialog({
-                              open: true,
-                              productId: p.id,
-                              productName: p.name,
-                            })
-                          }
-                          sx={{
-                            color: "#FDA4AF",
-                            "&:hover": { color: "#E11D48", bgcolor: "#FFF1F2" },
-                          }}
-                        >
-                          <Delete fontSize="small" />
-                        </IconButton>
+                      <Tooltip
+                        title={
+                          row.status === "PAID"
+                            ? "Paid invoices cannot be deleted"
+                            : `Delete ${row.invoiceId}`
+                        }
+                      >
+                        <span>
+                          {" "}
+                          {/* IMPORTANT: required for tooltip on disabled button */}
+                          <IconButton
+                            size="small"
+                            disabled={row.status === "PAID"}
+                            onClick={() => handleDelete(row)}
+                            sx={{
+                              color:
+                                row.status === "PAID" ? "#94a3b8" : "#dc2626",
+                              bgcolor:
+                                row.status === "PAID" ? "#f1f5f9" : "#fef2f2",
+                              cursor:
+                                row.status === "PAID"
+                                  ? "not-allowed"
+                                  : "pointer",
+
+                              "&:hover": {
+                                bgcolor:
+                                  row.status === "PAID" ? "#f1f5f9" : "#fee2e2",
+                              },
+                            }}
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
@@ -461,100 +415,24 @@ export default function Invoices() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Pagination */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <TablePagination
+            component="div"
+            count={filteredInvoices.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[15]}
+            showFirstButton
+            showLastButton
+          />
+        </Box>
       </Paper>
-
-      {/* ---------------- View Items Dialog ---------------- */}
-
-      <Dialog open={openView} onClose={handleCloseView} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          Invoice Items — {selectedInvoice?.invoiceId}
-        </DialogTitle>
-
-        <DialogContent dividers>
-          {itemsLoading && (
-            <Box textAlign="center" py={3}>
-              <CircularProgress />
-            </Box>
-          )}
-
-          {!itemsLoading && invoiceItems.length === 0 && (
-            <Typography align="center" py={3}>
-              No items found
-            </Typography>
-          )}
-
-          {!itemsLoading && invoiceItems.length > 0 && (
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ bgcolor: "#f8faff" }}>
-                    <TableCell>Item</TableCell>
-                    <TableCell>Product</TableCell>
-                    <TableCell>Qty</TableCell>
-                    <TableCell>Price</TableCell>
-                    <TableCell>Total</TableCell>
-                    <TableCell>Tax %</TableCell>
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {invoiceItems.map((item, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{item.productName}</TableCell>
-
-                      <TableCell>{item.itemName}</TableCell>
-
-                      <TableCell>{item.quantity}</TableCell>
-
-                      <TableCell>
-                        ₹ {item.unitPrice?.toLocaleString()}
-                      </TableCell>
-
-                      <TableCell>₹ {item.total?.toLocaleString()}</TableCell>
-
-                      <TableCell>{item.taxPercentage}%</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={handleCloseView} variant="outlined">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* ---------------- Invoice Preview Dialog ---------------- */}
-
-      <Dialog
-        open={openPreview}
-        onClose={() => setOpenPreview(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>Invoice Preview</DialogTitle>
-
-        <DialogContent dividers>
-          <InvoicePreview invoiceId={previewInvoiceId} />
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpenPreview(false)} variant="outlined">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       <CustomConfirmDialog
         open={openConfirm}
-        title="Delete Confirmation"
-        message="Are you sure you want to delete this item?"
-        confirmText="Delete"
-        cancelText="Cancel"
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
@@ -569,26 +447,35 @@ export default function Invoices() {
   );
 }
 
-/* ---------------- Status Chip ---------------- */
-
+/* Status Chip */
 function StatusChip({ status }) {
   const styles = {
     PAID: {
       bg: "#dcfce7",
-      color: "#166534",
+      color: "#15803d",
+      border: "#86efac",
     },
     PENDING: {
       bg: "#fef9c3",
-      color: "#854d0e",
+      color: "#a16207",
+      border: "#fde68a",
     },
     OVERDUE: {
       bg: "#fee2e2",
-      color: "#991b1b",
+      color: "#b91c1c",
+      border: "#fecaca",
     },
     SENT: {
       bg: "#e0e7ff",
       color: "#3730a3",
+      border: "#c7d2fe",
     },
+  };
+
+  const s = styles[status] || {
+    bg: "#f1f5f9",
+    color: "#334155",
+    border: "#e2e8f0",
   };
 
   return (
@@ -596,9 +483,12 @@ function StatusChip({ status }) {
       label={status}
       size="small"
       sx={{
-        bgcolor: styles[status]?.bg,
-        color: styles[status]?.color,
-        fontWeight: 600,
+        bgcolor: s.bg,
+        color: s.color,
+        fontWeight: 700,
+        border: `1px solid ${s.border}`,
+        letterSpacing: "0.3px",
+        px: 0.5,
       }}
     />
   );

@@ -252,7 +252,7 @@ export default function Dashboard() {
         <Grid width="23%" item xs={12} sm={6} md={3} display="flex">
           <GradientCard
             title="Pending"
-            value={stats.pendingInvoices}
+            value={formatINR(stats.pendingInvoices)}
             colors={["#fde68a", "#fffbeb"]}
           />
         </Grid>
