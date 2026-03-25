@@ -22,8 +22,15 @@ import {
   DialogActions,
 } from "@mui/material";
 
-import { Add, Delete, Visibility, Payments } from "@mui/icons-material";
+import {
+  Add,
+  Delete,
+  Visibility,
+  Payments,
+  DeleteForever,
+} from "@mui/icons-material";
 import { useRef } from "react";
+import paymentService from "../services/paymentService";
 
 // import paymentService from "../services/PaymentService";
 
@@ -51,31 +58,7 @@ export default function PaymentsList() {
   const loadPayments = async () => {
     try {
       setLoading(true);
-
-      // Demo Data (Replace with API)
-      const data = [
-        {
-          id: 1,
-          invoiceNo: "INV-1001",
-          client: "ABC Technologies",
-          date: "2026-02-05",
-          amount: 45000,
-          method: "UPI",
-          status: "SUCCESS",
-        },
-        {
-          id: 2,
-          invoiceNo: "INV-1002",
-          client: "SoftWave Pvt Ltd",
-          date: "2026-02-07",
-          amount: 18000,
-          method: "Card",
-          status: "PENDING",
-        },
-      ];
-
-      // const data = await paymentService.getAllPayments();
-
+      const data = await paymentService.getAllPayments();
       setPayments(data);
     } catch (err) {
       console.error(err);
@@ -85,7 +68,6 @@ export default function PaymentsList() {
   };
 
   /* ---------------- Delete ---------------- */
-
   const handleDeleteClick = (payment) => {
     setSelectedPayment(payment);
     setDeleteDialog(true);
@@ -172,6 +154,7 @@ export default function PaymentsList() {
                 <TableCell>Amount</TableCell>
                 <TableCell>Method</TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell />
               </TableRow>
             </TableHead>
 
@@ -189,7 +172,26 @@ export default function PaymentsList() {
               {!loading && payments.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} align="center">
-                    No payments found
+                    <Box
+                      sx={{
+                        py: 5,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 1,
+                        color: "#94A3B8",
+                      }}
+                    >
+                      <Payments sx={{ fontSize: 40, opacity: 0.4 }} />
+
+                      <Typography fontWeight={600}>
+                        No Payments Available
+                      </Typography>
+
+                      <Typography fontSize={13}>
+                        No transactions have been recorded yet
+                      </Typography>
+                    </Box>
                   </TableCell>
                 </TableRow>
               )}
@@ -215,6 +217,9 @@ export default function PaymentsList() {
                     {/* Status */}
                     <TableCell>
                       <PaymentStatus status={p.status} />
+                    </TableCell>
+                    <TableCell>
+                      <DeleteForever />
                     </TableCell>
                   </TableRow>
                 ))}

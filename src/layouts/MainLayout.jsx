@@ -123,7 +123,7 @@ export default function MainLayout({ children }) {
           </Typography>
 
           {/* Logout */}
-          <Tooltip title={userName}>
+          <Tooltip title={localStorage.getItem("name")}>
             <IconButton onClick={handleMenuOpen} sx={{ p: 0 }}>
               <Avatar
                 sx={{
@@ -132,7 +132,7 @@ export default function MainLayout({ children }) {
                   fontWeight: 600,
                 }}
               >
-                {userName?.[0] || "U"}
+                {localStorage.getItem("name")?.[0] || "U"}
               </Avatar>
             </IconButton>
           </Tooltip>
@@ -160,7 +160,7 @@ export default function MainLayout({ children }) {
                     fontSize: 12,
                   }}
                 >
-                  {userName?.[0] || "U"}
+                  {localStorage.getItem("name")?.[0] || "U"}
                 </Avatar>
               </ListItemIcon>
               Profile
@@ -216,13 +216,13 @@ export default function MainLayout({ children }) {
               },
             }}
           >
-            {userName?.[0] || "U"}
+            {localStorage.getItem("name")?.[0] || "U"}
           </Avatar>
 
           {open && (
             <Box>
               <Typography fontWeight="600">
-                {userName.split(" ")[0] || "User"}
+                {localStorage.getItem("name").split(" ")[0] || "User"}
               </Typography>
 
               <Typography variant="caption" color="green">

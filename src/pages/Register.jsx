@@ -23,6 +23,7 @@ import {
   PictureAsPdf,
   BarChart,
   Security,
+  GeneratingTokens,
 } from "@mui/icons-material";
 
 import { useState } from "react";
@@ -302,11 +303,28 @@ export default function Register() {
     if (provider === "GitHub") githubLogin();
   };
 
+  const generatePassword = () => {
+    const length = 12;
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+
+    let password = "";
+    for (let i = 0; i < length; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      password: password,
+      confirmPassword: password,
+    }));
+  };
+
   return (
     <Grid container minHeight="95vh">
       {/* LEFT IMAGE SECTION */}
       <Grid
-        width="50%"
+        width="40%"
         item
         xs={12}
         md={6}
@@ -401,7 +419,7 @@ export default function Register() {
 
       {/* RIGHT REGISTER FORM */}
       <Grid
-        width="50%"
+        width="60%"
         item
         xs={12}
         md={6}
@@ -419,7 +437,7 @@ export default function Register() {
             sx={{
               p: 5,
               width: "100%",
-              maxWidth: 480,
+              maxWidth: 600,
               borderRadius: 4,
               background:
                 "radial-gradient(circle at top right, rgba(100,181,246,.15), transparent 50%)",
@@ -484,6 +502,12 @@ export default function Register() {
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
+                          <Tooltip title="Generate Password">
+                            <IconButton onClick={generatePassword}>
+                              <GeneratingTokens />
+                            </IconButton>
+                          </Tooltip>
+
                           <IconButton onClick={() => setShowPass(!showPass)}>
                             {showPass ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -492,7 +516,7 @@ export default function Register() {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6} width="48%">
+                <Grid item xs={12} sm={6} width="47%">
                   <TextField
                     name="confirmPassword"
                     label="Confirm Password"
@@ -566,7 +590,19 @@ export default function Register() {
                 </Button>
               </Box>
 
-              <Divider>OR</Divider>
+              <Divider
+                sx={{
+                  my: 2,
+                  fontWeight: "bold",
+                  color: "#1976d2",
+                  "&::before, &::after": {
+                    borderColor: "rgba(25,118,210,0.3)",
+                    borderTopWidth: "2px",
+                  },
+                }}
+              >
+                OR
+              </Divider>
 
               {/* Social Register */}
               {/* SOCIAL ICONS */}
@@ -578,6 +614,7 @@ export default function Register() {
                 ].map((item, i) => (
                   <Tooltip key={i} title={item.label} arrow>
                     <IconButton
+                      disabled={loading}
                       onClick={() => handleSocial(item.label)}
                       sx={{
                         border: "1px solid #ddd",
@@ -638,7 +675,7 @@ export default function Register() {
               </Box>
 
               {/* Login Link */}
-              <Typography textAlign="center" mt={2}>
+              <Typography textAlign="center" mt={2} disabled={loading}>
                 Already have an account? <Link href="/login">Login</Link>
               </Typography>
             </Box>

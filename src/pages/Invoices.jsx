@@ -196,22 +196,23 @@ export default function Invoices() {
             </Typography>
           </Box>
 
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => nav("/create-invoice")}
-            sx={{
-              bgcolor: "white",
-              color: "#6366f1",
-              fontWeight: 600,
-
-              "&:hover": {
-                bgcolor: "#eef2ff",
-              },
-            }}
-          >
-            Create Invoice
-          </Button>
+          {!loading && invoices.length > 0 && (
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => nav("/create-invoice")}
+              sx={{
+                bgcolor: "white",
+                color: "#6366f1",
+                fontWeight: 600,
+                "&:hover": {
+                  bgcolor: "#eef2ff",
+                },
+              }}
+            >
+              Create Invoice
+            </Button>
+          )}
         </Box>
       </Paper>
 
@@ -292,8 +293,43 @@ export default function Invoices() {
               {/* No Data */}
               {!loading && invoices.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
-                    No invoices found
+                  <TableCell colSpan={9} align="center">
+                    <Box
+                      sx={{
+                        py: 6,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 1,
+                        color: "#94A3B8",
+                      }}
+                    >
+                      <NoteAlt sx={{ fontSize: 45, opacity: 0.4 }} />
+
+                      <Typography fontWeight={600}>
+                        No Invoices Available
+                      </Typography>
+
+                      <Typography fontSize={13}>
+                        You haven't created any invoices yet
+                      </Typography>
+
+                      {/* Show button ONLY here */}
+                      <Button
+                        variant="contained"
+                        startIcon={<Add />}
+                        onClick={() => nav("/create-invoice")}
+                        sx={{
+                          mt: 1.5,
+                          borderRadius: 2,
+                          textTransform: "none",
+                          bgcolor: "#6366f1",
+                          "&:hover": { bgcolor: "#4f46e5" },
+                        }}
+                      >
+                        Create First Invoice
+                      </Button>
+                    </Box>
                   </TableCell>
                 </TableRow>
               )}
@@ -404,20 +440,20 @@ export default function Invoices() {
                       {/* Delete */}
                       <Tooltip title={`Delete ${row.invoiceId}`}>
                         <IconButton
-                        onClick={() =>
-                          setDeleteDialog({
-                            open: true,
-                            productId: p.id,
-                            productName: p.name,
-                          })
-                        }
-                        sx={{
-                          color: "#FDA4AF",
-                          "&:hover": { color: "#E11D48", bgcolor: "#FFF1F2" },
-                        }}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
+                          onClick={() =>
+                            setDeleteDialog({
+                              open: true,
+                              productId: p.id,
+                              productName: p.name,
+                            })
+                          }
+                          sx={{
+                            color: "#FDA4AF",
+                            "&:hover": { color: "#E11D48", bgcolor: "#FFF1F2" },
+                          }}
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
                       </Tooltip>
                     </TableCell>
                   </TableRow>

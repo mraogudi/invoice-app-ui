@@ -27,6 +27,7 @@ import InvoicePreview from "./pages/InvoicePreview";
 import Profile from "./pages/Profile";
 import InvoicePublicView from "./pages/InvoicePublicView";
 import AdaptiveSnowfall from "./components/AdaptiveSnowfall";
+import FirstTimeChangePassword from "./pages/FirstTimeChangePassword";
 
 // ✅ MICROSOFT CONFIG
 const msalInstance = new PublicClientApplication({
@@ -105,6 +106,17 @@ export default function App() {
                     <ProtectedRoute>
                       <MainLayout>
                         <Clients />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/firstTimePwd"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <FirstTimeChangePassword />
                       </MainLayout>
                     </ProtectedRoute>
                   }

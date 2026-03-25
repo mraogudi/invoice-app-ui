@@ -29,10 +29,10 @@ import {
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useGoogleLogin } from "@react-oauth/google";
+// import { useGoogleLogin } from "@react-oauth/google";
 import { useMsal } from "@azure/msal-react";
 import api from "../api/api";
-import socialService from "../services/soacialService";
+// import socialService from "../services/soacialService";
 import { useSnackbar } from "notistack";
 import { motion } from "framer-motion";
 import CustomAlert from "../utils/CustomAlert";
@@ -46,7 +46,7 @@ export default function Login() {
   const { enqueueSnackbar } = useSnackbar();
 
   const nav = useNavigate();
-  const { instance } = useMsal();
+  // const { instance } = useMsal();
 
   const [alert, setAlert] = useState({
     open: false,
@@ -106,7 +106,11 @@ export default function Login() {
         }
 
         nav("/verify-otp", {
-          state: { tempToken: res.data.tempToken, email: email },
+          state: {
+            tempToken: res.data.tempToken,
+            email: email,
+            firstTimeLogin: res.data.firstTimeLogin,
+          },
         });
       } else {
         enqueueSnackbar(
@@ -455,7 +459,19 @@ export default function Login() {
               )}
             </Button>
 
-            <Divider>OR</Divider>
+            <Divider
+              sx={{
+                my: 2,
+                fontWeight: "bold",
+                color: "#1976d2",
+                "&::before, &::after": {
+                  borderColor: "rgba(25,118,210,0.3)",
+                  borderTopWidth: "2px",
+                },
+              }}
+            >
+              OR
+            </Divider>
 
             {/* SOCIAL ICONS */}
             {/* SOCIAL ICONS */}
@@ -468,6 +484,7 @@ export default function Login() {
               ].map((item, i) => (
                 <Tooltip key={i} title={item.label} arrow>
                   <IconButton
+                    disabled={loading}
                     onClick={() => handleSocial(item.label)}
                     sx={{
                       border: "1px solid #ddd",
@@ -525,7 +542,7 @@ export default function Login() {
               ))}
             </Box>
             {/* Register Link */}
-            <Typography textAlign="center" mt={2}>
+            <Typography textAlign="center" mt={2} disabled={loading}>
               Create an account? <Link href="/register">Register</Link>
             </Typography>
           </Box>

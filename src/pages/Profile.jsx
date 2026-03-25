@@ -13,46 +13,60 @@ import {
   CircularProgress,
   Container,
   Stack,
-  Tooltip,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tabs,
+  Tab,
+  Fade,
+  Slide,
 } from "@mui/material";
 
 import {
   Save,
   Edit,
-  Lock,
   Visibility,
   VisibilityOff,
   Close,
-  Clear,
   Person,
   Email,
   PhoneIphone,
   ShieldRounded,
+  History,
 } from "@mui/icons-material";
-// ✅ ONLY NEW IMPORT ADDED
+
 import { TablePagination } from "@mui/material";
 import { useAuth } from "../auth/AuthContext";
 import userService from "../services/userService";
+import { useSnackbar } from "notistack";
+
+// TabPanel
+function TabPanel({ children, value, index }) {
+  return (
+    <Fade in={value === index} timeout={200}>
+      <div hidden={value !== index}>
+        {value === index && <Box mt={2}>{children}</Box>}
+      </div>
+    </Fade>
+  );
+}
 
 export default function Profile() {
   const { userName } = useAuth();
   const handleApiCall = useRef(false);
 
-  const [editMode, setEditMode] = useState(false);
+  const [tab, setTab] = useState(0);
+
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
   const [passErrors, setPassErrors] = useState({});
-  const [userDetailsTemp, setUserDetailsTemp] = useState();
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [history, setHistory] = useState([]);
-  // ✅ Pagination state
+  const { enqueueSnackbar } = useSnackbar();
+
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
 
@@ -71,20 +85,78 @@ export default function Profile() {
 
   const [showPass, setShowPass] = useState(false);
 
-  // Styles Palette
   const colors = {
     primary: "#6366f1",
     secondary: "#a78bfa",
-    bgGradient: "linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%)",
-    glass: "rgba(255, 255, 255, 0.8)",
-    border: "rgba(99, 102, 241, 0.12)",
+  };
+
+  // 🔥 Styles
+  const styles = {
+    tabs: {
+      mb: 3,
+
+      "& .MuiTabs-flexContainer": {
+        background: "#f1f5f9",
+        borderRadius: 3,
+        p: "4px", // reduced padding
+      },
+
+      "& .MuiTab-root": {
+        textTransform: "none",
+        fontWeight: 600,
+        borderRadius: 2,
+        color: "#64748b",
+
+        minHeight: "36px", // 🔥 reduce height
+        padding: "6px 12px", // 🔥 tighter spacing
+        fontSize: "0.9rem", // slightly compact
+
+        transition: "all 0.3s ease",
+      },
+
+      "& .MuiTab-root:not(.Mui-selected):hover": {
+        background: "#e2e8f0",
+      },
+
+      "& .Mui-selected": {
+        color: "#fff !important",
+        background: "linear-gradient(90deg, #6366f1, #a78bfa)",
+        transform: "scale(1.03)", // reduced scale for compact look
+        pointerEvents: "none",
+      },
+
+      "& .MuiTabs-indicator": {
+        display: "none",
+      },
+    },
+
+    primaryBtn: {
+      borderRadius: 3,
+      textTransform: "none",
+      px: 3,
+      fontWeight: 600,
+      background: "linear-gradient(90deg, #6366f1, #a78bfa)",
+      boxShadow: "0 4px 14px rgba(99,102,241,0.4)",
+      transition: "all 0.3s ease",
+      "&:hover": {
+        background: "linear-gradient(90deg, #4f46e5, #8b5cf6)",
+        transform: "translateY(-1px)",
+        boxShadow: "0 6px 18px rgba(99,102,241,0.5)",
+      },
+    },
+
+    secondaryBtn: {
+      borderRadius: 3,
+      textTransform: "none",
+      color: "#475569",
+      "&:hover": { background: "#f1f5f9" },
+    },
   };
 
   useEffect(() => {
     if (!handleApiCall.current) {
       handleApiCall.current = true;
       fetchUserDetails();
-      setPage(0);
     }
   }, []);
 
@@ -93,25 +165,12 @@ export default function Profile() {
     try {
       const response = await userService.getUserDetails();
       setProfile(response);
-      setUserDetailsTemp(response);
 
-      // ✅ Fetch login history
       const historyRsp = await userService.getLoginHistory();
       setHistory(historyRsp || []);
-    } catch (err) {
-      console.error("Failed to load details", err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (date) => {
-    if (!date) return "NA";
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
   };
 
   const paginatedHistory = history.slice(
@@ -119,26 +178,21 @@ export default function Profile() {
     page * rowsPerPage + rowsPerPage,
   );
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  const handleChangePage = (e, newPage) => setPage(newPage);
+
+  const formatDate = (date) =>
+    date
+      ? new Date(date).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "NA";
 
   const formatTime = (value) => {
     if (!value) return "NA";
-
-    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/;
-
-    if (typeof value === "string" && timeRegex.test(value)) {
-      const [hour, minute, second] = value.split(":");
-      let h = parseInt(hour, 10);
-      const ampm = h >= 12 ? "PM" : "AM";
-      h = h % 12 || 12;
-      return `${h}:${minute}:${second} ${ampm}`;
-    }
-
     const d = new Date(value);
     if (isNaN(d.getTime())) return "NA";
-
     return d.toLocaleTimeString("en-IN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -149,279 +203,204 @@ export default function Profile() {
 
   const handleProfileChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handlePasswordChange = (e) => {
+  const handlePasswordChange = async (e) => {
     setPassword({ ...password, [e.target.name]: e.target.value });
-    setPassErrors({ ...passErrors, [e.target.name]: "" });
+  };
+
+  const handlePasswordClear = () => {
+    setPassword({ current: "", newPass: "", confirm: "" });
   };
 
   const handleSaveProfile = async () => {
-    if (!validateProfile()) return;
+    setSavingProfile(true);
     try {
-      setSavingProfile(true);
-      const updated = await userService.updateUser(profile);
-      setProfile(updated);
-      setUserDetailsTemp(updated);
-      setEditMode(false);
+      await userService.updateUser(profile);
     } finally {
       setSavingProfile(false);
     }
   };
 
-  // ... (validateProfile and validatePassword logic remain the same as your snippet)
-  const validateProfile = () => {
-    const e = {};
-    if (!profile.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email))
-      e.email = "Valid email required";
-    if (!profile.phone || !/^[6-9]\d{9}$/.test(profile.phone))
-      e.phone = "Valid 10-digit phone required";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const validatePassword = () => {
-    const e = {};
-    if (!password.current) e.current = "Required";
-    if (password.newPass.length < 6) e.newPass = "Min 6 characters";
-    if (password.newPass !== password.confirm) e.confirm = "Mismatch";
-    setPassErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleClose = () => {
-    setProfile(userDetailsTemp);
-    setEditMode(false);
-    setErrors({});
-  };
-
-  // Reusable Field Style
-  const textFieldStyle = {
-    "& .MuiOutlinedInput-root": {
-      borderRadius: 3,
-      backgroundColor: "rgba(255, 255, 255, 0.5)",
-      transition: "0.3s",
-      "&:hover": { backgroundColor: "#fff" },
-      "&.Mui-focused": {
-        backgroundColor: "#fff",
-        boxShadow: "0 4px 12px rgba(99,102,241,0.1)",
-      },
-    },
+  const validatePassword = async () => {
+    if (!password.current || password.newPass !== password.confirm) return;
+    setSavingPassword(true);
+    const payload = {
+      currentPassword: password.current,
+      newPassword: password.newPass,
+    };
+    const response = await userService.changePassword(payload);
+    if (response.status === "200" || response.status === "201") {
+      enqueueSnackbar("Password updated successfully!", {
+        variant: "success",
+      });
+      handlePasswordClear();
+    } else {
+      enqueueSnackbar("Password not updated try again!", {
+        variant: "error",
+      });
+    }
+    setSavingPassword(false);
   };
 
   return (
-    <Box sx={{ minHeight: "90vh", py: 6, px: 2 }}>
-      <Container maxWidth="md">
-        {/* Header Section */}
-        <Stack direction="row" alignItems="center" spacing={2} mb={5}>
-          <Avatar
-            sx={{
-              width: 64,
-              height: 64,
-              background: `linear-gradient(45deg, ${colors.primary}, ${colors.secondary})`,
-              boxShadow: "0 8px 16px rgba(99,102,241,0.25)",
-            }}
-          >
-            {profile.name.charAt(0).toUpperCase()}
-          </Avatar>
-          <Box>
-            <Typography
-              variant="h4"
-              fontWeight={800}
-              sx={{ color: "#1e293b", letterSpacing: "-0.5px" }}
-            >
-              Account Settings
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Update your personal information and security preferences.
-            </Typography>
-          </Box>
+    <Box
+      sx={{
+        height: "75vh", // full viewport height
+        overflow: "hidden", // 🚀 removes vertical scroll
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Container
+        maxWidth="md"
+        sx={{
+          flex: 1,
+          overflow: "hidden", // allow inner scroll if needed
+          py: 4,
+        }}
+      >
+        {/* HEADER */}
+        <Stack direction="row" spacing={2} mb={4}>
+          <Avatar>{profile.name.charAt(0).toUpperCase()}</Avatar>
+          <Typography variant="h4">Account Settings</Typography>
         </Stack>
 
-        <Box sx={{ position: "relative" }}>
-          {loading && (
-            <Box
-              sx={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 10,
-                borderRadius: 6,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backdropFilter: "blur(4px)",
-                background: "rgba(255,255,255,0.4)",
-              }}
-            >
-              <CircularProgress
-                size={50}
-                thickness={4}
-                sx={{ color: colors.primary }}
-              />
-            </Box>
-          )}
+        {/* TABS */}
+        <Tabs
+          value={tab}
+          onChange={(e, v) => setTab(v)}
+          variant="fullWidth"
+          sx={styles.tabs}
+        >
+          <Tab label="Profile" icon={<Person />} iconPosition="start" />
+          <Tab label="Password" icon={<ShieldRounded />} iconPosition="start" />
+          <Tab label="History" icon={<History />} iconPosition="start" />
+        </Tabs>
 
-          {/* PROFILE CARD */}
+        {/* PROFILE */}
+        <TabPanel value={tab} index={0}>
           <Paper
-            elevation={0}
             sx={{
-              p: { xs: 3, md: 5 },
-              mb: 4,
-              borderRadius: 6,
-              background: colors.glass,
-              backdropFilter: "blur(12px)",
-              border: `1px solid ${colors.border}`,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.04)",
-              width: "100%",
+              p: 4,
+              borderRadius: 4,
+              backdropFilter: "blur(10px)",
+              background: "rgba(255,255,255,0.7)",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "translateY(-3px)",
+                boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+              },
             }}
           >
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={4}
-            >
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                display="flex"
-                alignItems="center"
-                gap={1}
-              >
-                <Person sx={{ color: colors.primary }} /> Personal Details
-              </Typography>
-
-              {!editMode ? (
-                <Button
-                  startIcon={<Edit />}
-                  variant="outlined"
-                  onClick={() => setEditMode(true)}
-                  sx={{
-                    borderRadius: 3,
-                    textTransform: "none",
-                    fontWeight: 600,
-                  }}
-                >
-                  Edit Profile
-                </Button>
-              ) : (
-                <Stack direction="row" spacing={1}>
-                  <IconButton
-                    onClick={handleClose}
-                    sx={{ color: "text.secondary" }}
-                  >
-                    <Close />
-                  </IconButton>
-                  <Button
-                    variant="contained"
-                    startIcon={
-                      savingProfile ? (
-                        <CircularProgress size={18} color="inherit" />
-                      ) : (
-                        <Save />
-                      )
-                    }
-                    onClick={handleSaveProfile}
-                    disabled={savingProfile}
-                    sx={{
-                      borderRadius: 3,
-                      textTransform: "none",
-                      px: 3,
-                      background: `linear-gradient(90deg, ${colors.primary}, ${colors.secondary})`,
-                      boxShadow: "0 4px 12px rgba(99,102,241,0.3)",
-                    }}
-                  >
-                    Save Changes
-                  </Button>
-                </Stack>
-              )}
-            </Stack>
-
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
                 <TextField
                   fullWidth
-                  label="Full Name"
+                  label="Name"
                   name="name"
                   value={profile.name}
                   onChange={handleProfileChange}
-                  disabled={!editMode}
-                  error={!!errors.name}
-                  helperText={errors.name}
-                  sx={textFieldStyle}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                      transition: "all 0.3s",
+                      "&:hover fieldset": {
+                        borderColor: "#6366f1",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#6366f1",
+                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
+                      },
+                    },
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+
+              <Grid item xs={6}>
                 <TextField
                   fullWidth
-                  label="Email Address"
+                  label="Email"
                   name="email"
                   value={profile.email}
                   onChange={handleProfileChange}
-                  disabled={!editMode}
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email fontSize="small" />
-                      </InputAdornment>
-                    ),
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                      transition: "all 0.3s",
+                      "&:hover fieldset": {
+                        borderColor: "#6366f1",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#6366f1",
+                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
+                      },
+                    },
                   }}
-                  sx={textFieldStyle}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+
+              <Grid item xs={6}>
                 <TextField
                   fullWidth
-                  label="Phone Number"
+                  label="Phone"
                   name="phone"
                   value={profile.phone}
                   onChange={handleProfileChange}
-                  disabled={!editMode}
-                  error={!!errors.phone}
-                  helperText={errors.phone}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PhoneIphone fontSize="small" />
-                      </InputAdornment>
-                    ),
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                      transition: "all 0.3s",
+                      "&:hover fieldset": {
+                        borderColor: "#6366f1",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#6366f1",
+                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
+                      },
+                    },
                   }}
-                  sx={textFieldStyle}
                 />
               </Grid>
             </Grid>
-          </Paper>
 
-          {/* PASSWORD CARD */}
+            <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
+              <Button sx={styles.secondaryBtn}>Cancel</Button>
+
+              <Button
+                variant="contained"
+                onClick={handleSaveProfile}
+                sx={styles.primaryBtn}
+              >
+                {savingProfile ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </Box>
+          </Paper>
+        </TabPanel>
+
+        {/* PASSWORD */}
+        <TabPanel value={tab} index={1}>
           <Paper
-            elevation={0}
             sx={{
-              p: { xs: 3, md: 5 },
-              borderRadius: 6,
-              background: colors.glass,
-              backdropFilter: "blur(12px)",
-              border: `1px solid ${colors.border}`,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.04)",
-              width: "100%",
+              p: 4,
+              borderRadius: 4,
+              backdropFilter: "blur(10px)",
+              background: "rgba(255,255,255,0.7)",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "translateY(-3px)",
+                boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+              },
             }}
           >
-            <Typography
-              variant="h6"
-              fontWeight={700}
-              display="flex"
-              alignItems="center"
-              gap={1}
-              mb={4}
-            >
-              <ShieldRounded sx={{ color: colors.primary }} /> Security &
-              Password
-            </Typography>
-
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={4}>
+            <Grid container spacing={2}>
+              <Grid item xs={4}>
                 <TextField
                   fullWidth
                   type={showPass ? "text" : "password"}
@@ -429,24 +408,30 @@ export default function Profile() {
                   name="current"
                   value={password.current}
                   onChange={handlePasswordChange}
-                  error={!!passErrors.current}
-                  helperText={passErrors.current}
-                  sx={textFieldStyle}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                      transition: "all 0.3s",
+                      "&:hover fieldset": {
+                        borderColor: "#6366f1",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#6366f1",
+                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
+                      },
+                    },
+                  }}
                   InputProps={{
                     endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPass(!showPass)}
-                          edge="end"
-                        >
-                          {showPass ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
+                      <IconButton onClick={() => setShowPass(!showPass)}>
+                        {showPass ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
                     ),
                   }}
                 />
               </Grid>
-              <Grid item xs={12} md={4}>
+
+              <Grid item xs={4}>
                 <TextField
                   fullWidth
                   type="password"
@@ -454,46 +439,56 @@ export default function Profile() {
                   name="newPass"
                   value={password.newPass}
                   onChange={handlePasswordChange}
-                  error={!!passErrors.newPass}
-                  helperText={passErrors.newPass}
-                  sx={textFieldStyle}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                      transition: "all 0.3s",
+                      "&:hover fieldset": {
+                        borderColor: "#6366f1",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#6366f1",
+                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
+                      },
+                    },
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} md={4}>
+
+              <Grid item xs={4}>
                 <TextField
                   fullWidth
                   type="password"
-                  label="Confirm New Password"
+                  label="Confirm Password"
                   name="confirm"
                   value={password.confirm}
                   onChange={handlePasswordChange}
-                  error={!!passErrors.confirm}
-                  helperText={passErrors.confirm}
-                  sx={textFieldStyle}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                      transition: "all 0.3s",
+                      "&:hover fieldset": {
+                        borderColor: "#6366f1",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "#6366f1",
+                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
+                      },
+                    },
+                  }}
                 />
               </Grid>
             </Grid>
 
-            <Box mt={4} display="flex" justifyContent="flex-end" gap={2}>
-              <Button
-                onClick={() =>
-                  setPassword({ current: "", newPass: "", confirm: "" })
-                }
-                variant="text"
-                sx={{ color: "text.secondary", textTransform: "none" }}
-              >
-                Clear Fields
+            <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
+              <Button sx={styles.secondaryBtn} onClick={handlePasswordClear}>
+                Clear
               </Button>
+
               <Button
                 variant="contained"
                 onClick={validatePassword}
-                sx={{
-                  borderRadius: 3,
-                  px: 4,
-                  textTransform: "none",
-                  backgroundColor: "#1e293b",
-                  "&:hover": { backgroundColor: "#0f172a" },
-                }}
+                sx={styles.primaryBtn}
               >
                 {savingPassword ? (
                   <CircularProgress size={20} color="inherit" />
@@ -503,65 +498,52 @@ export default function Profile() {
               </Button>
             </Box>
           </Paper>
+        </TabPanel>
 
-          {/* HISTORY CARD */}
+        {/* HISTORY */}
+        <TabPanel value={tab} index={2}>
           <Paper
-            elevation={0}
             sx={{
-              p: { xs: 3, md: 5 },
-              mt: 4,
-              borderRadius: 6,
-              background: colors.glass,
-              backdropFilter: "blur(12px)",
-              border: `1px solid ${colors.border}`,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.04)",
+              p: 4,
+              borderRadius: 4,
+              backdropFilter: "blur(10px)",
+              background: "rgba(255,255,255,0.7)",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                transform: "translateY(-3px)",
+                boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+              },
             }}
           >
-            <Typography variant="h6" fontWeight={700} mb={3}>
-              Login History
-            </Typography>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ background: "#f8fafc" }}>
+                  <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Time</TableCell>
+                </TableRow>
+              </TableHead>
 
-            <Divider sx={{ mb: 2 }} />
-
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>
-                      <b>Name</b>
-                    </TableCell>
-                    <TableCell>
-                      <b>Date</b>
-                    </TableCell>
-                    <TableCell>
-                      <b>Time</b>
-                    </TableCell>
+              <TableBody>
+                {paginatedHistory.map((row, i) => (
+                  <TableRow
+                    key={i}
+                    sx={{
+                      transition: "all 0.2s",
+                      "&:hover": {
+                        background: "#f1f5f9",
+                      },
+                    }}
+                  >
+                    <TableCell>{row.name}</TableCell>
+                    <TableCell>{formatDate(row.loginDate)}</TableCell>
+                    <TableCell>{formatTime(row.loginTime)}</TableCell>
                   </TableRow>
-                </TableHead>
+                ))}
+              </TableBody>
+            </Table>
 
-                <TableBody>
-                  {paginatedHistory.length > 0 ? (
-                    paginatedHistory.map((row, index) => (
-                      <TableRow key={index} hover>
-                        <TableCell>{row.name || "NA"}</TableCell>
-                        <TableCell>{formatDate(row.loginDate)}</TableCell>
-                        <TableCell>{formatTime(row.loginTime)}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={3} align="center" sx={{ py: 5 }}>
-                        <Typography color="text.secondary">
-                          No login history available
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            {/* ✅ Pagination Added */}
             <TablePagination
               component="div"
               count={history.length}
@@ -571,7 +553,7 @@ export default function Profile() {
               rowsPerPageOptions={[5]}
             />
           </Paper>
-        </Box>
+        </TabPanel>
       </Container>
     </Box>
   );

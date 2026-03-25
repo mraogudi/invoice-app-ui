@@ -31,6 +31,7 @@ import {
   LocalOffer,
   PaidOutlined,
 } from "@mui/icons-material";
+import productService from "../services/productService";
 
 export default function Products() {
   /* ---------------- State ---------------- */
@@ -64,22 +65,7 @@ export default function Products() {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const data = [
-        {
-          id: 1,
-          name: "Premium Wireless Mouse",
-          code: "WMS-02",
-          price: 2499,
-          tax: 18,
-        },
-        {
-          id: 2,
-          name: "Ergonomic Office Chair",
-          code: "CHR-44",
-          price: 15500,
-          tax: 12,
-        },
-      ];
+      const data = await productService.getAllProducts();
       setProducts(data);
     } catch (err) {
       console.error(err);
@@ -244,6 +230,31 @@ export default function Products() {
                 <TableRow>
                   <TableCell colSpan={5} align="center">
                     <CircularProgress size={30} sx={{ my: 4 }} />
+                  </TableCell>
+                </TableRow>
+              ) : products.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    <Box
+                      sx={{
+                        py: 5,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 1,
+                        color: "#94A3B8",
+                      }}
+                    >
+                      <Inventory sx={{ fontSize: 40, opacity: 0.4 }} />
+
+                      <Typography fontWeight={600}>
+                        No Products Available
+                      </Typography>
+
+                      <Typography fontSize={13}>
+                        Add your first product to get started
+                      </Typography>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ) : (

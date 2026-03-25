@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Box, Paper, Typography, Grid, CircularProgress } from "@mui/material";
 import {
   TrendingUp,
@@ -22,7 +22,8 @@ import {
   Bar,
   Legend,
 } from "recharts";
-import { useRef } from "react";
+
+import reportService from "../services/reportService";
 
 export default function Reports() {
   const [loading, setLoading] = useState(true);
@@ -43,39 +44,30 @@ export default function Reports() {
     try {
       setLoading(true);
 
+      const userId = localStorage.getItem("userId");
+      const res = await reportService.getReports(userId);
+      const data = res?.data || {};
+
       setStats({
-        totalRevenue: 245000,
-        totalInvoices: 128,
-        totalPayments: 96,
-        overdueInvoices: 8,
+        totalRevenue: data.totalRevenue ?? null,
+        totalInvoices: data.totalInvoices ?? null,
+        totalPayments: data.totalPayments ?? null,
+        overdueInvoices: data.overdueInvoices ?? null,
       });
 
-      setRevenueData([
-        { month: "Jan", revenue: 35000 },
-        { month: "Feb", revenue: 42000 },
-        { month: "Mar", revenue: 38000 },
-        { month: "Apr", revenue: 52000 },
-        { month: "May", revenue: 48000 },
-      ]);
-
-      setMethodData([
-        { name: "UPI", value: 40 },
-        { name: "Card", value: 30 },
-        { name: "Bank", value: 20 },
-        { name: "Cash", value: 10 },
-      ]);
-
-      setInvoiceData([
-        { month: "Jan", invoices: 18 },
-        { month: "Feb", invoices: 22 },
-        { month: "Mar", invoices: 20 },
-        { month: "Apr", invoices: 28 },
-        { month: "May", invoices: 24 },
-      ]);
+      setRevenueData(data.monthlyRevenue || []);
+      setMethodData(data.paymentMethods || []);
+      setInvoiceData(data.monthlyInvoices || []);
+    } catch (err) {
+      console.error("Reports API error:", err);
     } finally {
       setLoading(false);
     }
   };
+
+  // ✅ FIXED: Proper data check
+  const hasData =
+    revenueData.length > 0 || methodData.length > 0 || invoiceData.length > 0;
 
   const formatINR = (value) =>
     new Intl.NumberFormat("en-IN", {
@@ -92,13 +84,7 @@ export default function Reports() {
   }
 
   return (
-    <Box
-      sx={{
-        px: 3,
-        pb: 4,
-        minHeight: "95vh",
-      }}
-    >
+    <Box sx={{ px: 3, pb: 4, minHeight: "95vh" }}>
       {/* Title */}
       <Box mb={4}>
         <Typography variant="h4" fontWeight={800}>
@@ -114,98 +100,135 @@ export default function Reports() {
         <StatCard
           icon={<TrendingUp />}
           title="Total Revenue"
-          value={`₹ ${formatINR(stats.totalRevenue)}`}
+          value={
+            stats.totalRevenue ? `₹ ${formatINR(stats.totalRevenue)}` : "NA"
+          }
           gradient="linear-gradient(135deg,#eef2ff,#e0e7ff)"
         />
 
         <StatCard
           icon={<ReceiptLong />}
           title="Invoices"
-          value={stats.totalInvoices}
+          value={stats.totalInvoices ? stats.totalInvoices : "NA"}
           gradient="linear-gradient(135deg,#ecfeff,#cffafe)"
         />
 
         <StatCard
           icon={<Payments />}
           title="Payments"
-          value={stats.totalPayments}
+          value={stats.totalPayments ? stats.totalPayments : "NA"}
           gradient="linear-gradient(135deg,#f0fdf4,#dcfce7)"
         />
 
         <StatCard
           icon={<WarningAmber />}
           title="Overdue"
-          value={stats.overdueInvoices}
+          value={stats.overdueInvoices ? stats.overdueInvoices : "NA"}
           gradient="linear-gradient(135deg,#fef2f2,#fee2e2)"
           danger
         />
       </Grid>
 
+      {/* Empty State */}
+      {!hasData && (
+        <Paper
+          sx={{
+            p: 5,
+            textAlign: "center",
+            borderRadius: 4,
+            mb: 3,
+            background: "linear-gradient(135deg,#f8fafc,#eef2ff)",
+          }}
+        >
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            gap={1}
+            color="#94A3B8"
+          >
+            <ReceiptLong sx={{ fontSize: 45, opacity: 0.4 }} />
+
+            <Typography fontWeight={600}>No Report Data Available</Typography>
+
+            <Typography fontSize={13}>
+              No invoices or payments found to generate reports
+            </Typography>
+          </Box>
+        </Paper>
+      )}
+
       {/* Charts */}
-      <Grid container spacing={3}>
-        {/* Revenue */}
-        <Grid width="30%" item xs={12} md={8}>
-          <ChartCard title="Monthly Revenue">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#6366f1"
-                  strokeWidth={3}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
+      {hasData && (
+        <Grid container spacing={3}>
+          {/* Revenue */}
+          <Grid item xs={12} md={8}>
+            <ChartCard title="Monthly Revenue">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#6366f1"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          </Grid>
 
-        {/* Payment Methods */}
-        <Grid width="30%" item xs={12} md={4}>
-          <ChartCard title="Payment Methods">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={methodData}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={90}
-                  label
-                >
-                  {methodData.map((_, i) => (
-                    <Cell
-                      key={i}
-                      fill={["#6366f1", "#22c55e", "#f59e0b", "#ef4444"][i]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
+          {/* Payment Methods */}
+          <Grid item xs={12} md={4}>
+            <ChartCard title="Payment Methods">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={methodData}
+                    dataKey="value"
+                    nameKey="name"
+                    outerRadius={90}
+                    label
+                  >
+                    {methodData.map((_, i) => (
+                      <Cell
+                        key={i}
+                        fill={["#6366f1", "#22c55e", "#f59e0b", "#ef4444"][i]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          </Grid>
 
-        {/* Invoices */}
-        <Grid width="30%" item xs={12}>
-          <ChartCard title="Monthly Invoices">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={invoiceData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="invoices" fill="#6366f1" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
+          {/* Invoices */}
+          <Grid item xs={12}>
+            <ChartCard title="Monthly Invoices">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={invoiceData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="invoices"
+                    fill="#6366f1"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
     </Box>
   );
 }
@@ -214,7 +237,7 @@ export default function Reports() {
 
 function StatCard({ icon, title, value, gradient, danger }) {
   return (
-    <Grid width="23%" item xs={12} sm={6} md={3}>
+    <Grid item xs={12} sm={6} md={3} width={"23%"}>
       <Paper
         sx={{
           p: 3,
@@ -235,8 +258,16 @@ function StatCard({ icon, title, value, gradient, danger }) {
 
             <Typography
               variant="h6"
-              fontWeight={800}
-              color={danger ? "error" : "text.primary"}
+              fontWeight={value === "NA" ? 900 : 800}
+              sx={{
+                color:
+                  value === "NA"
+                    ? "red" // grey for NA
+                    : danger
+                      ? "#dc2626"
+                      : "text.primary",
+                letterSpacing: value === "NA" ? "1px" : "normal",
+              }}
             >
               {value}
             </Typography>
@@ -247,7 +278,6 @@ function StatCard({ icon, title, value, gradient, danger }) {
               bgcolor: "rgba(255,255,255,0.6)",
               borderRadius: 2,
               p: 1,
-              backdropFilter: "blur(4px)",
             }}
           >
             {icon}
@@ -268,7 +298,6 @@ function ChartCard({ title, children }) {
         borderRadius: 4,
         background: "linear-gradient(180deg,#ffffff,#f8fafc)",
         boxShadow: "0 15px 35px rgba(0,0,0,0.05)",
-        fontFamily: "-apple-system",
       }}
     >
       <Typography fontWeight={700} mb={2}>

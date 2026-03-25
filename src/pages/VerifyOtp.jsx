@@ -30,6 +30,7 @@ export default function VerifyOtp() {
   const tempToken =
     location.state?.tempToken || localStorage.getItem("tempToken");
   const email = location.state?.email;
+  const firstTimeLogin = location.state?.firstTimeLogin;
 
   /* ------------------ Focus ONLY once on mount ------------------ */
   useEffect(() => {
@@ -106,9 +107,18 @@ export default function VerifyOtp() {
 
       if (res.status === 200) {
         login(res.data.token, res.data.userName);
+        localStorage.setItem("name", res.data.userName);
         localStorage.setItem("token", res.data.token);
-
-        nav("/");
+        if (firstTimeLogin) {
+          nav("/firstTimePwd", {
+            state: {
+              name: res.data.userName,
+              token: res.data.token,
+            },
+          });
+        } else {
+          nav("/");
+        }
       } else {
         alert("Invalid OTP");
       }
@@ -138,6 +148,13 @@ export default function VerifyOtp() {
   const clearOtp = () => {
     setOtp(["", "", "", "", "", ""]);
     inputs.current[0]?.focus();
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("tempToken");
+    localStorage.removeItem("name");
+    nav("/login");
   };
 
   return (
@@ -213,12 +230,12 @@ export default function VerifyOtp() {
 
           {/* Buttons */}
           <Box display="flex" gap={1.5}>
+            {/* Clear */}
             <Button
               variant="outlined"
-              fullWidth
               onClick={clearOtp}
               sx={{
-                flex: 0.35,
+                flex: 0.25,
                 py: 1.3,
                 borderRadius: 2,
                 fontWeight: 600,
@@ -227,13 +244,13 @@ export default function VerifyOtp() {
               Clear
             </Button>
 
+            {/* Verify */}
             <Button
               variant="contained"
-              fullWidth
               disabled={loading}
               onClick={verify}
               sx={{
-                flex: 0.65,
+                flex: 0.5,
                 py: 1.3,
                 borderRadius: 2,
                 fontWeight: 600,
@@ -244,6 +261,21 @@ export default function VerifyOtp() {
               ) : (
                 "Verify OTP"
               )}
+            </Button>
+
+            {/* Logout */}
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={logout}
+              sx={{
+                flex: 0.25,
+                py: 1.3,
+                borderRadius: 2,
+                fontWeight: 600,
+              }}
+            >
+              Logout
             </Button>
           </Box>
 

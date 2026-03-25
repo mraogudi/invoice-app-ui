@@ -179,6 +179,11 @@ export default function Dashboard() {
     >
       {/* Header */}
       <Box
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          border: "1px solid black",
+        }}
         mb={4}
         display="flex"
         justifyContent="space-between"
@@ -188,7 +193,7 @@ export default function Dashboard() {
         {/* Left - Username */}
         <Box>
           <Typography variant="h4" fontWeight="bold">
-            Hi, {userName}!
+            Hi, {localStorage.getItem("name")}!
           </Typography>
 
           <Typography color="text.secondary">
@@ -200,7 +205,6 @@ export default function Dashboard() {
         <Box
           sx={{
             p: 2,
-            borderRadius: 2,
             minWidth: "200px",
           }}
         >
@@ -278,11 +282,15 @@ export default function Dashboard() {
               </Typography>
 
               <Button
+                disabled={invoices.length === 0}
                 variant="contained"
                 onClick={() => navigate("/invoices")}
                 sx={{
                   borderRadius: 2,
-                  background: "linear-gradient(90deg,#6366f1,#8b5cf6)",
+                  background:
+                    invoices.length > 0
+                      ? "linear-gradient(90deg,#6366f1,#8b5cf6)"
+                      : "white",
                 }}
               >
                 View All
