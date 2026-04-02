@@ -23,6 +23,7 @@ import {
   Tab,
   Fade,
   Slide,
+  LinearProgress,
 } from "@mui/material";
 
 import {
@@ -42,6 +43,8 @@ import { TablePagination } from "@mui/material";
 import { useAuth } from "../auth/AuthContext";
 import userService from "../services/userService";
 import { useSnackbar } from "notistack";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
 // TabPanel
 function TabPanel({ children, value, index }) {
@@ -153,6 +156,63 @@ export default function Profile() {
     },
   };
 
+  const inputStyles = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 3,
+      transition: "all 0.25s ease",
+      "&:hover fieldset": {
+        borderColor: "#6366f1",
+      },
+      "&.Mui-focused fieldset": {
+        borderColor: "#6366f1",
+        boxShadow: "0 0 0 2px rgba(99,102,241,0.15)",
+      },
+    },
+  };
+
+  const passwordRuleContainer = {
+    mt: 1,
+    px: 2,
+    py: 1.5,
+    borderRadius: 3,
+  };
+
+  const passwordRuleItem = (index) => ({
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
+    mb: 0.8,
+    opacity: 0,
+    transform: "translateY(6px)",
+    animation: "fadeInUp 0.3s ease forwards",
+    animationDelay: `${index * 0.08}s`,
+    "@keyframes fadeInUp": {
+      to: {
+        opacity: 1,
+        transform: "translateY(0)",
+      },
+    },
+  });
+
+  const ruleIconValid = {
+    fontSize: 18,
+    color: "#22c55e",
+  };
+
+  const ruleIconDefault = {
+    fontSize: 18,
+    color: "#9ca3af",
+  };
+
+  const ruleText = (valid) => ({
+    fontSize: "0.85rem",
+    fontWeight: 500,
+    letterSpacing: "0.2px",
+    fontFamily: "JetBrains Mono, Fira Code, monospace",
+    color: valid ? "#16a34a" : "#6b7280",
+    transition: "all 0.2s ease",
+  });
+
   useEffect(() => {
     if (!handleApiCall.current) {
       handleApiCall.current = true;
@@ -183,10 +243,10 @@ export default function Profile() {
   const formatDate = (date) =>
     date
       ? new Date(date).toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
       : "NA";
 
   const formatTime = (value) => {
@@ -243,6 +303,47 @@ export default function Profile() {
     setSavingPassword(false);
   };
 
+  const passwordRulesList = [
+    {
+      key: "length",
+      label: "At least 10 characters",
+      test: (val) => val.length >= 10,
+    },
+    {
+      key: "uppercase",
+      label: "One uppercase letter",
+      test: (val) => /[A-Z]/.test(val),
+    },
+    {
+      key: "lowercase",
+      label: "One lowercase letter",
+      test: (val) => /[a-z]/.test(val),
+    },
+    {
+      key: "number",
+      label: "One number",
+      test: (val) => /[0-9]/.test(val),
+    },
+    {
+      key: "special",
+      label: "One special character",
+      test: (val) => /[!@#$%^&*(),.?":{}|<>]/.test(val),
+    },
+  ];
+
+  // evaluate rules
+  const evaluatedRules = passwordRulesList.map((rule) => ({
+    ...rule,
+    valid: rule.test(password.newPass),
+  }));
+
+  // progressive visibility (show next only after previous satisfied)
+  const visibleRules = [];
+  for (let i = 0; i < evaluatedRules.length; i++) {
+    visibleRules.push(evaluatedRules[i]);
+    if (!evaluatedRules[i].valid) break;
+  }
+
   return (
     <Box
       sx={{
@@ -250,6 +351,7 @@ export default function Profile() {
         overflow: "hidden", // 🚀 removes vertical scroll
         display: "flex",
         flexDirection: "column",
+        width: "100%",
       }}
     >
       <Container
@@ -296,13 +398,16 @@ export default function Profile() {
               background: "rgba(255,255,255,0.7)",
               boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
               transition: "all 0.3s ease",
+              width: "93%",
               "&:hover": {
                 transform: "translateY(-3px)",
                 boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
               },
             }}
           >
-            <Grid container spacing={2}>
+            <Grid container spacing={1}>
+
+              {/* NAME */}
               <Grid item xs={6}>
                 <TextField
                   fullWidth
@@ -310,22 +415,18 @@ export default function Profile() {
                   name="name"
                   value={profile.name}
                   onChange={handleProfileChange}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 3,
-                      transition: "all 0.3s",
-                      "&:hover fieldset": {
-                        borderColor: "#6366f1",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#6366f1",
-                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
-                      },
-                    },
+                  sx={inputStyles}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Person sx={{ color: "#6366f1" }} />
+                      </InputAdornment>
+                    ),
                   }}
                 />
               </Grid>
 
+              {/* EMAIL */}
               <Grid item xs={6}>
                 <TextField
                   fullWidth
@@ -333,22 +434,18 @@ export default function Profile() {
                   name="email"
                   value={profile.email}
                   onChange={handleProfileChange}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 3,
-                      transition: "all 0.3s",
-                      "&:hover fieldset": {
-                        borderColor: "#6366f1",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#6366f1",
-                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
-                      },
-                    },
+                  sx={inputStyles}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Email sx={{ color: "#6366f1" }} />
+                      </InputAdornment>
+                    ),
                   }}
                 />
               </Grid>
 
+              {/* PHONE */}
               <Grid item xs={6}>
                 <TextField
                   fullWidth
@@ -356,21 +453,17 @@ export default function Profile() {
                   name="phone"
                   value={profile.phone}
                   onChange={handleProfileChange}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 3,
-                      transition: "all 0.3s",
-                      "&:hover fieldset": {
-                        borderColor: "#6366f1",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#6366f1",
-                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
-                      },
-                    },
+                  sx={inputStyles}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIphone sx={{ color: "#6366f1" }} />
+                      </InputAdornment>
+                    ),
                   }}
                 />
               </Grid>
+
             </Grid>
 
             <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
@@ -400,94 +493,146 @@ export default function Profile() {
               backdropFilter: "blur(10px)",
               background: "rgba(255,255,255,0.7)",
               boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                transform: "translateY(-3px)",
-                boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
-              },
             }}
           >
-            <Grid container spacing={2}>
-              <Grid item xs={4}>
-                <TextField
-                  fullWidth
-                  type={showPass ? "text" : "password"}
-                  label="Current Password"
-                  name="current"
-                  value={password.current}
-                  onChange={handlePasswordChange}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 3,
-                      transition: "all 0.3s",
-                      "&:hover fieldset": {
-                        borderColor: "#6366f1",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#6366f1",
-                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
-                      },
-                    },
-                  }}
-                  InputProps={{
-                    endAdornment: (
-                      <IconButton onClick={() => setShowPass(!showPass)}>
-                        {showPass ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    ),
-                  }}
-                />
-              </Grid>
+            {/* 🔥 PASSWORD STRENGTH LOGIC (MATCHED) */}
+            {(() => {
+              const pwd = password.newPass || "";
+              let score = 0;
+              if (pwd.length >= 10) score += 25;
+              if (/[A-Z]/.test(pwd)) score += 25;
+              if (/[0-9]/.test(pwd)) score += 25;
+              if (/[^A-Za-z0-9]/.test(pwd)) score += 25;
 
-              <Grid item xs={4}>
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="New Password"
-                  name="newPass"
-                  value={password.newPass}
-                  onChange={handlePasswordChange}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 3,
-                      transition: "all 0.3s",
-                      "&:hover fieldset": {
-                        borderColor: "#6366f1",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#6366f1",
-                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
-                      },
-                    },
-                  }}
-                />
-              </Grid>
+              const strengthLabel =
+                score < 50 ? "Weak" : score < 75 ? "Medium" : "Strong";
 
-              <Grid item xs={4}>
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="Confirm Password"
-                  name="confirm"
-                  value={password.confirm}
-                  onChange={handlePasswordChange}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 3,
-                      transition: "all 0.3s",
-                      "&:hover fieldset": {
-                        borderColor: "#6366f1",
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: "#6366f1",
-                        boxShadow: "0 0 0 2px rgba(99,102,241,0.2)",
-                      },
-                    },
-                  }}
-                />
-              </Grid>
-            </Grid>
+              return (
+                <Grid container spacing={3}>
 
+                  {/* LEFT SIDE */}
+                  <Grid item xs={12} md={8} width={"50%"}>
+                    <Stack spacing={2}>
+
+                      <TextField
+                        fullWidth
+                        type={showPass ? "text" : "password"}
+                        label="Current Password"
+                        name="current"
+                        value={password.current}
+                        onChange={handlePasswordChange}
+                        sx={inputStyles}
+                        InputProps={{
+                          endAdornment: (
+                            <IconButton onClick={() => setShowPass(!showPass)}>
+                              {showPass ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          ),
+                        }}
+                      />
+
+                      <TextField
+                        fullWidth
+                        type="password"
+                        label="New Password"
+                        name="newPass"
+                        value={password.newPass}
+                        onChange={handlePasswordChange}
+                        sx={inputStyles}
+                      />
+
+                      {/* 🔥 STRENGTH BAR */}
+                      {password.newPass && (
+                        <Box sx={{ mt: -1 }}>
+                          <LinearProgress
+                            variant="determinate"
+                            value={score}
+                            sx={{
+                              height: 6,
+                              borderRadius: 5,
+                              mb: 0.5,
+                              "& .MuiLinearProgress-bar": {
+                                background:
+                                  score < 50
+                                    ? "#ef4444"
+                                    : score < 75
+                                      ? "#f59e0b"
+                                      : "#22c55e",
+                              },
+                            }}
+                          />
+                          <Typography variant="caption">
+                            Strength: <b>{strengthLabel}</b>
+                          </Typography>
+                        </Box>
+                      )}
+
+                      <TextField
+                        fullWidth
+                        type="password"
+                        label="Confirm Password"
+                        name="confirm"
+                        value={password.confirm}
+                        onChange={handlePasswordChange}
+                        sx={inputStyles}
+                        error={
+                          !!password.confirm &&
+                          password.newPass !== password.confirm
+                        }
+                        helperText={
+                          password.confirm &&
+                            password.newPass !== password.confirm
+                            ? "Passwords do not match"
+                            : ""
+                        }
+                      />
+                    </Stack>
+                  </Grid>
+
+                  {/* RIGHT SIDE - RULES */}
+                  <Grid item xs={12} md={4} width={"45%"}>
+                    <Box sx={passwordRuleContainer}>
+                      {[
+                        {
+                          label: "At least 10 characters",
+                          valid: password.newPass.length >= 10,
+                        },
+                        {
+                          label: "One uppercase letter",
+                          valid: /[A-Z]/.test(password.newPass),
+                        },
+                        {
+                          label: "One lowercase letter",
+                          valid: /[a-z]/.test(password.newPass),
+                        },
+                        {
+                          label: "One number",
+                          valid: /[0-9]/.test(password.newPass),
+                        },
+                        {
+                          label: "One special character",
+                          valid: /[^A-Za-z0-9]/.test(password.newPass),
+                        },
+                      ].map((rule, index) => (
+                        <Box key={index} sx={passwordRuleItem(index)}>
+                          {rule.valid ? (
+                            <CheckCircleIcon sx={ruleIconValid} />
+                          ) : (
+                            <RadioButtonUncheckedIcon sx={ruleIconDefault} />
+                          )}
+
+                          <Typography sx={ruleText(rule.valid)}>
+                            {rule.label}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Grid>
+                </Grid>
+              );
+            })()}
+
+            {/* ACTIONS */}
             <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
               <Button sx={styles.secondaryBtn} onClick={handlePasswordClear}>
                 Clear
@@ -563,6 +708,6 @@ export default function Profile() {
           </Paper>
         </TabPanel>
       </Container>
-    </Box>
+    </Box >
   );
 }

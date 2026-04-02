@@ -24,11 +24,10 @@ import LoginIcon from "@mui/icons-material/Login";
 import InsightsIcon from "@mui/icons-material/Insights";
 import invoiceService from "../services/invoiceService";
 import dashboardService from "../services/dashboardService";
-import { useAuth } from "../auth/AuthContext";
+import { DateRange, DateRangeTwoTone, History } from "@mui/icons-material";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { userName } = useAuth();
 
   /* ---------------- State ---------------- */
 
@@ -219,11 +218,11 @@ export default function Dashboard() {
           </Typography>
 
           <Typography variant="body2" fontWeight="500">
-            <InsightsIcon fontSize="small" color="action" /> Login Count:{" "}
+            <History fontSize="small" color="action" /> Login Count:{" "}
             <b>{stats?.loginCount ?? "NA"}</b>
           </Typography>
           <Typography variant="body2" fontWeight="500">
-            <PersonAddIcon fontSize="small" color="action" /> Created At:{" "}
+            <DateRangeTwoTone fontSize="small" color="action" /> Created At:{" "}
             <b>
               {stats?.createdDate ? formatDateTime(stats?.createdDate) : "NA"}
             </b>
@@ -252,7 +251,7 @@ export default function Dashboard() {
         <Grid width="23%" item xs={12} sm={6} md={3} display="flex">
           <GradientCard
             title="Pending"
-            value={formatINR(stats.pendingInvoices)}
+            value={`₹ ${formatINR(stats.pendingInvoices)}`}
             colors={["#fde68a", "#fffbeb"]}
           />
         </Grid>
@@ -413,7 +412,7 @@ function GradientCard({ title, value, colors, onClick }) {
           {title}
         </Typography>
 
-        <Typography variant="h4" fontWeight="bold" mt={1}>
+        <Typography variant="h5" fontWeight="bold" mt={1}>
           {value}
         </Typography>
       </CardContent>
