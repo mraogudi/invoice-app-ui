@@ -24,7 +24,12 @@ import LoginIcon from "@mui/icons-material/Login";
 import InsightsIcon from "@mui/icons-material/Insights";
 import invoiceService from "../services/invoiceService";
 import dashboardService from "../services/dashboardService";
-import { DateRange, DateRangeTwoTone, History } from "@mui/icons-material";
+import {
+  DateRange,
+  DateRangeTwoTone,
+  History,
+  PasswordTwoTone,
+} from "@mui/icons-material";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -225,6 +230,15 @@ export default function Dashboard() {
             <DateRangeTwoTone fontSize="small" color="action" /> Created At:{" "}
             <b>
               {stats?.createdDate ? formatDateTime(stats?.createdDate) : "NA"}
+            </b>
+          </Typography>
+          <Typography variant="body2" fontWeight="500">
+            <PasswordTwoTone fontSize="small" color="action" /> Last Password
+            Changed:{" "}
+            <b>
+              {stats?.lastPasswordChangedAt
+                ? formatDateTime(stats?.lastPasswordChangedAt)
+                : "NA"}
             </b>
           </Typography>
         </Box>

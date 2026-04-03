@@ -67,7 +67,10 @@ export default function AdaptiveSnowfall({ themeMode = "light" }) {
   const path = location.pathname;
 
   const isAuthPage =
-    path === "/login" || path === "/register" || path === "/verify-otp";
+    path === "/login" ||
+    path === "/register" ||
+    path === "/verify-otp" ||
+    path === "/forgot-password";
 
   return (
     <>

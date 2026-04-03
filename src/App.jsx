@@ -28,6 +28,7 @@ import Profile from "./pages/Profile";
 import InvoicePublicView from "./pages/InvoicePublicView";
 import AdaptiveSnowfall from "./components/AdaptiveSnowfall";
 import FirstTimeChangePassword from "./pages/FirstTimeChangePassword";
+import ForgotPassword from "./pages/ForgotPassword";
 
 // ✅ MICROSOFT CONFIG
 const msalInstance = new PublicClientApplication({
@@ -62,6 +63,7 @@ export default function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/verify-otp" element={<VerifyOtp />} />
                 <Route path="/chng-pwd" element={<ChangePassword />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
 
                 {/* ✅ ADD GITHUB CALLBACK */}
                 <Route path="/github/callback" element={<GithubCallback />} />

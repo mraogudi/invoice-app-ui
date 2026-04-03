@@ -62,7 +62,7 @@ export default function MainLayout({ children }) {
 
   const TIMEOUT = 900000; // ✅ 15 minutes
 
-  const [countdown, setCountdown] = useState(15);
+  const [countdown, setCountdown] = useState(25);
   const [sessionTime, setSessionTime] = useState(900); // 15 mins in seconds
 
   const startMainTimer = () => {
@@ -91,7 +91,7 @@ export default function MainLayout({ children }) {
   };
 
   const startGraceTimer = () => {
-    setCountdown(10);
+    setCountdown(25);
 
     if (graceTimerRef.current) clearInterval(graceTimerRef.current);
 
@@ -223,25 +223,25 @@ export default function MainLayout({ children }) {
               px: 2,
               py: 0.6,
               borderRadius: 2,
-              minWidth: 100,
+              minWidth: 80,
               textAlign: "center",
-              fontWeight: 700,
+              fontWeight: 800,
               fontSize: "0.85rem",
               letterSpacing: 1,
-              color: "white",
-              background:
+              background: "white",
+              color:
                 sessionTime <= 300
-                  ? "rgba(239,68,68,0.2)"
+                  ? "red"
                   : sessionTime <= 600
-                    ? "rgba(245,158,11,0.2)"
-                    : "rgba(34,197,94,0.2)",
+                    ? "orange"
+                    : "green",
               border: `1px solid ${getTimerColor(sessionTime)}`,
-              boxShadow:
-                sessionTime <= 300
-                  ? "0 0 12px rgba(239,68,68,0.6)"
-                  : sessionTime <= 600
-                    ? "0 0 10px rgba(245,158,11,0.5)"
-                    : "0 0 8px rgba(34,197,94,0.5)",
+              // boxShadow:
+              //   sessionTime <= 300
+              //     ? "0 0 12px rgba(239,68,68,0.6)"
+              //     : sessionTime <= 600
+              //       ? "0 0 10px rgba(245,158,11,0.5)"
+              //       : "0 0 8px rgba(34,197,94,0.5)",
               transition: "all 0.3s ease",
             }}
           >
@@ -287,6 +287,51 @@ export default function MainLayout({ children }) {
           },
         }}
       >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: open ? "row" : "column",
+            alignItems: "center",
+            justifyContent: open ? "flex-start" : "center",
+            gap: open ? 1.5 : 0,
+            px: 2,
+            py: 2,
+            "&:hover": {
+              cursor: "pointer",
+            },
+          }}
+          onClick={() => nav("/profile")}
+        >
+          <Tooltip title={localStorage.getItem("name")}>
+            <Avatar
+              sx={{
+                width: open ? 40 : 36,
+                height: open ? 40 : 36,
+                bgcolor: "#6366f1",
+                fontWeight: 600,
+              }}
+            >
+              {localStorage.getItem("name")?.[0] || "U"}
+            </Avatar>
+          </Tooltip>
+
+          {open && (
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                color: "#374151",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {localStorage.getItem("name").split(" ")[0] || "User"}
+              <Typography sx={{ color: "green" }}>online</Typography>
+            </Typography>
+          )}
+        </Box>
+
+        <Divider />
+
         <List>
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;

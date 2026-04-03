@@ -433,17 +433,40 @@ export default function Login() {
               }}
             />
 
-            {/* Remember */}
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={remember}
-                  disabled={loading}
-                  onChange={(e) => setRemember(e.target.checked)}
-                />
-              }
-              label="Remember me"
-            />
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <FormControlLabel
+                sx={{ m: 0 }} // removes extra spacing issue
+                control={
+                  <Checkbox
+                    checked={remember}
+                    disabled={loading}
+                    onChange={(e) => setRemember(e.target.checked)}
+                  />
+                }
+                label="Remember me"
+              />
+
+              <Link
+                component="button"
+                variant="body2"
+                underline="hover"
+                onClick={() => nav("/forgot-password")}
+                sx={{
+                  fontWeight: 500,
+                  color: "#6366f1",
+                  whiteSpace: "nowrap", // 🔥 prevents line break
+                }}
+              >
+                Forgot Password?
+              </Link>
+            </Box>
 
             {/* Login */}
             <Button
@@ -473,8 +496,6 @@ export default function Login() {
               OR
             </Divider>
 
-            {/* SOCIAL ICONS */}
-            {/* SOCIAL ICONS */}
             {/* SOCIAL ICONS */}
             <Box display="flex" justifyContent="center" gap={2}>
               {[

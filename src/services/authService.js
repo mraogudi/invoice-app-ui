@@ -20,6 +20,24 @@ const authService = {
     }
   },
 
+  forgotPassword: async (email) => {
+    try {
+      const response = await api.get(`/auth/forgot-password/${email}`);
+      return response;
+    } catch (error) {
+      console.error("Error sending email for forgot password :", error);
+    }
+  },
+
+  updatePassword: async (payload) => {
+    try {
+      const response = await api.post("/auth/update-password", payload);
+      return response;
+    } catch (error) {
+      console.error("Error for updating password :", error);
+    }
+  },
+
   // createFromGoogle: async () => {
   //   try {
   //     const repose = await api.post("/auth/google")
