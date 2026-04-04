@@ -226,12 +226,12 @@ export default function Dashboard() {
             <History fontSize="small" color="action" /> Login Count:{" "}
             <b>{stats?.loginCount ?? "NA"}</b>
           </Typography>
-          <Typography variant="body2" fontWeight="500">
+          {/* <Typography variant="body2" fontWeight="500">
             <DateRangeTwoTone fontSize="small" color="action" /> Created At:{" "}
             <b>
               {stats?.createdDate ? formatDateTime(stats?.createdDate) : "NA"}
             </b>
-          </Typography>
+          </Typography>*/}
           <Typography variant="body2" fontWeight="500">
             <PasswordTwoTone fontSize="small" color="action" /> Last Password
             Changed:{" "}
